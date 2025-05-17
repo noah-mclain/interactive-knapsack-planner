@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <chrono>
 
 using namespace std;
 
@@ -19,4 +20,7 @@ class double_knapsack {
         void knapsack();
         vector<int> get_selected_items();
         int get_max_profit();
+        double get_space_complexity() {
+            return sizeof(weights) + sizeof(values) + sizeof(dp) + sizeof(item_count) + sizeof(selected_items) + sizeof(max_profit);
+        }
 };

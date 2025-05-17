@@ -1,86 +1,120 @@
-#include "include/knapsack/greedy_knapsack.hpp"
-#include "include/knapsack/knapsack_solver.hpp"
+#include <SFML/Graphics.hpp>
+#include "imgui.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "knapsack/knapsack.h"
+#include "config.h"
+
 #include <iostream>
-#include <iomanip>
-#include <chrono>
 #include <vector>
+#include <string>
+#include <cstddef>
 
-using namespace std;
-using namespace knapsack;
-
-void printItem(const knapsack::Item& item) {
-    std::cout << "Item " << item.id 
-              << ": Weight=" << item.weight 
-              << ", Profit=" << item.profit 
-              << ", Ratio=" << item.ratio << std::endl;
-}
-
+// Simple application that displays a knapsack problem solver UI
 int main() {
-    // Create a knapsack solver instance
-    /*
-    knapsack::GreedyKnapsack solver;
+    // Create SFML window
+    sf::RenderWindow window(sf::VideoMode({800, 600}), "Interactive Knapsack Planner");
+    window.setFramerateLimit(60);
     
-    // Set capacity
-    double capacity = 8.0;
-    solver.setCapacity(capacity);
+    // Initialize ImGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::StyleColorsDark();
     
-    // Add items (weight, profit)
-    solver.addItem(2.0, 10.0);  // Item 1: ratio = 5.0
-    solver.addItem(3.0, 5.0);   // Item 2: ratio = 1.67
-    solver.addItem(5.0, 15.0);  // Item 3: ratio = 3.0
-    solver.addItem(1.0, 7.0);   // Item 4: ratio = 7.0
-    solver.addItem(4.0, 8.0);   // Item 5: ratio = 2.0
+    // Use the GLSL version defined at build time by CMake
+    const char* glsl_version = GLSL_VERSION;
     
-    std::cout << "0/1 Knapsack Problem - Greedy Approach" << std::endl;
-    std::cout << "=======================================" << std::endl;
-    std::cout << "Capacity: " << capacity << std::endl;
-    std::cout << "\nItems available:" << std::endl;
+    // Initialize OpenGL3 backend with platform-specific GLSL version
+    ImGui_ImplOpenGL3_Init(glsl_version);
     
-    for (const auto& item : solver.getItems()) {
-        printItem(item);
-    }
+    // Clock for ImGui timing
+    sf::Clock deltaClock;
     
-    // Solve the problem
-    std::vector<knapsack::Item> selectedItems = solver.solve();
-    
-    // Calculate total weight and profit
-    double totalWeight = 0.0;
-    double totalProfit = 0.0;
-    
-    for (const auto& item : selectedItems) {
-        totalWeight += item.weight;
-        totalProfit += item.profit;
-    }
-    
-    // Display results
-    std::cout << "\nSelected items:" << std::endl;
-    for (const auto& item : selectedItems) {
-        printItem(item);
-    }
-    
-    std::cout << "\nTotal weight: " << totalWeight << " / " << capacity << std::endl;
-    std::cout << "Total profit: " << totalProfit << std::endl;
-    
-    // Display performance metrics
-    auto nanoseconds = solver.getExecutionTime().count();
-    std::cout << "\nPerformance Metrics:" << std::endl;
-    std::cout << "Execution time: " << std::fixed << std::setprecision(3) 
-              << nanoseconds / 1000000.0 << " ms" << std::endl;
-    std::cout << "Time complexity: " << solver.getTimeComplexity() << std::endl;
-    std::cout << "Memory usage: " << solver.getMemoryUsage() << " bytes" << std::endl;
-    std::cout << "Space complexity: " << solver.getSpaceComplexity() << std::endl;
-    */
-   /* (23, 87)
-(4, 16)
-(102, 58)
-(77, 39)
-(9, 250)
-   */
-    vector<int> weights = {23, 4, 102, 77, 4, 6, 2, 7, 3, 5, 4};
-    vector<int> values  = {87, 16, 58, 9, 12, 6, 18, 9, 14, 11, 13};
+    // Knapsack solver data
+    std::vector<int> weights = {23, 4, 102, 77, 4, 6, 2, 7, 3, 5, 4};
+    std::vector<int> values = {87, 16, 58, 9, 12, 6, 18, 9, 14, 11, 13};
     int capacity = 25;
-    bool algorithms[3] = {true, true, true}; // Greedy, Brute Force, Dynamic Programming
-    KnapsackSolver solver(weights.size(), weights, values, capacity, algorithms);
-    solver.solve();
+    
+    // Main loop
+    while (window.isOpen()) {
+        // Process events but don't try to check specific types
+        auto eventOption = window.pollEvent();
+        while (eventOption) {
+            eventOption = window.pollEvent();
+        }
+        
+        // Start ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        
+        // Set display size and timing
+        io.DisplaySize = ImVec2(static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y));
+        io.DeltaTime = deltaClock.restart().asSeconds();
+        
+        ImGui::NewFrame();
+        
+        // Simple ImGui Window
+        ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(550, 500), ImGuiCond_FirstUseEver);
+        
+        ImGui::Begin("Knapsack Planner");
+        
+        ImGui::Text("Interactive Knapsack Problem Solver");
+        ImGui::Separator();
+        
+        // Capacity slider
+        ImGui::SliderInt("Knapsack Capacity", &capacity, 1, 200);
+        
+        // Items list
+        ImGui::Text("Current Items:");
+        for (std::size_t i = 0; i < weights.size(); i++) {
+            ImGui::Text("Item %zu: Weight %d, Value %d", i+1, weights[i], values[i]);
+        }
+        
+        ImGui::Separator();
+        
+        // Add item section
+        static int new_weight = 0;
+        static int new_value = 0;
+        ImGui::InputInt("Weight", &new_weight);
+        ImGui::InputInt("Value", &new_value);
+        
+        if (ImGui::Button("Add Item")) {
+            if (new_weight > 0) {
+                weights.push_back(new_weight);
+                values.push_back(new_value);
+                new_weight = 0;
+                new_value = 0;
+            }
+        }
+        
+        ImGui::SameLine();
+        
+        if (ImGui::Button("Solve")) {
+            // Create boolean array for algorithms
+            bool algorithms[3] = {true, true, true}; // Greedy, Brute Force, Dynamic Programming
+            
+            // Initialize solver
+            KnapsackSolver solver(weights.size(), weights, values, capacity, algorithms);
+            
+            // Solve problem
+            solver.solve();
+            
+            // Output result
+            std::cout << "Solved knapsack problem with capacity " << capacity << std::endl;
+        }
+        
+        ImGui::End(); // End of window
+        
+        // Render
+        window.clear(sf::Color(50, 50, 50));
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        window.display();
+    }
+    
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui::DestroyContext();
+    
     return 0;
 }

@@ -4,20 +4,20 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineSystem.cmake:205 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:205 (message)"
       - "CMakeLists.txt:2 (project)"
     message: |
-      The system is: Windows - 10.0.19045 - AMD64
+      The system is: Darwin - 24.5.0 - arm64
   -
     kind: "message-v1"
     backtrace:
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
       - "CMakeLists.txt:2 (project)"
     message: |
       Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
-      Compiler: E:/MYSYS/ucrt64/bin/c++.exe 
+      Compiler: /usr/bin/c++ 
       Build flags: 
       Id flags:  
       
@@ -25,16 +25,57 @@ events:
       0
       
       
-      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.exe"
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
       
-      The CXX compiler identification is GNU, found in:
-        E:/12th projects/interactive-knapsack-planner/build/CMakeFiles/4.0.2/CompilerIdCXX/a.exe
+      The CXX compiler identification is AppleClang, found in:
+        /Users/nadamohamed/Documents/GitHub/interactive-knapsack-planner/build/CMakeFiles/4.0.2/CompilerIdCXX/a.out
       
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:290 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Detecting CXX compiler apple sysroot: "/usr/bin/c++" "-E" "apple-sdk.cpp"
+        # 1 "apple-sdk.cpp"
+        # 1 "<built-in>" 1
+        # 1 "<built-in>" 3
+        # 513 "<built-in>" 3
+        # 1 "<command line>" 1
+        # 1 "<built-in>" 2
+        # 1 "apple-sdk.cpp" 2
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityMacros.h" 1 3 4
+        # 89 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityMacros.h" 3 4
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h" 1 3 4
+        # 90 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityMacros.h" 2 3 4
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/TargetConditionals.h" 1 3 4
+        # 91 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityMacros.h" 2 3 4
+        # 207 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityMacros.h" 3 4
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Availability.h" 1 3 4
+        # 196 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Availability.h" 3 4
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h" 1 3 4
+        # 197 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Availability.h" 2 3 4
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h" 1 3 4
+        # 33 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h" 3 4
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h" 1 3 4
+        # 34 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h" 2 3 4
+        # 198 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Availability.h" 2 3 4
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h" 1 3 4
+        # 34 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h" 3 4
+        # 1 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h" 1 3 4
+        # 35 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h" 2 3 4
+        # 199 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Availability.h" 2 3 4
+        # 208 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityMacros.h" 2 3 4
+        # 2 "apple-sdk.cpp" 2
+        
+        
+      Found apple sysroot: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
   -
     kind: "try_compile-v1"
     backtrace:
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
       - "CMakeLists.txt:2 (project)"
     checks:
       - "Detecting CXX compiler ABI info"
@@ -46,6 +87,9 @@ events:
       CMAKE_CXX_FLAGS_DEBUG: "-g"
       CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
       CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: "arm64"
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
     buildResult:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
@@ -83,12 +127,12 @@ events:
         ignoring nonexistent directory "D:/a/msys64/ucrt64/include"
         #include "..." search starts here:
         #include <...> search starts here:
-         E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0
-         E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0/x86_64-w64-mingw32
-         E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0/backward
-         E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/include
-         E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include
-         E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/include-fixed
+         /usr/local/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
         End of search list.
         Compiler executable checksum: 63c0cddd21fc468e636adb9d7a9358c1
         COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\\cmTC_6cd2c.dir\\CMakeCXXCompilerABI.cpp.obj' '-c' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles\\cmTC_6cd2c.dir\\'
@@ -122,34 +166,41 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCompilerABI.cmake:191 (message)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:122 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Effective list of requested architectures (possibly empty)  : "arm64"
+      Effective list of architectures found in the ABI info binary: "arm64"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:191 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
       - "CMakeLists.txt:2 (project)"
     message: |
       Parsed CXX implicit include dir info: rv=done
         found start of include info
         found start of implicit include info
-          add: [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0]
-          add: [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0/x86_64-w64-mingw32]
-          add: [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0/backward]
-          add: [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/include]
-          add: [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include]
-          add: [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/include-fixed]
+          add: [/usr/local/include]
+          add: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
+          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include]
+          add: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
+          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
         end of search list found
-        collapse include dir [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0] ==> [E:/MYSYS/ucrt64/include/c++/15.1.0]
-        collapse include dir [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0/x86_64-w64-mingw32] ==> [E:/MYSYS/ucrt64/include/c++/15.1.0/x86_64-w64-mingw32]
-        collapse include dir [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0/backward] ==> [E:/MYSYS/ucrt64/include/c++/15.1.0/backward]
-        collapse include dir [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/include] ==> [E:/MYSYS/ucrt64/lib/gcc/x86_64-w64-mingw32/15.1.0/include]
-        collapse include dir [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include] ==> [E:/MYSYS/ucrt64/include]
-        collapse include dir [E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/include-fixed] ==> [E:/MYSYS/ucrt64/lib/gcc/x86_64-w64-mingw32/15.1.0/include-fixed]
-        implicit include dirs: [E:/MYSYS/ucrt64/include/c++/15.1.0;E:/MYSYS/ucrt64/include/c++/15.1.0/x86_64-w64-mingw32;E:/MYSYS/ucrt64/include/c++/15.1.0/backward;E:/MYSYS/ucrt64/lib/gcc/x86_64-w64-mingw32/15.1.0/include;E:/MYSYS/ucrt64/include;E:/MYSYS/ucrt64/lib/gcc/x86_64-w64-mingw32/15.1.0/include-fixed]
+        collapse include dir [/usr/local/include] ==> [/usr/local/include]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        implicit include dirs: [/usr/local/include;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
       
       
   -
     kind: "message-v1"
     backtrace:
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCompilerABI.cmake:227 (message)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:227 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
       - "CMakeLists.txt:2 (project)"
     message: |
       Parsed CXX implicit link information:
@@ -188,12 +239,12 @@ events:
         ignore line: [ignoring nonexistent directory "D:/a/msys64/ucrt64/include"]
         ignore line: [#include "..." search starts here:]
         ignore line: [#include <...> search starts here:]
-        ignore line: [ E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0]
-        ignore line: [ E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0/x86_64-w64-mingw32]
-        ignore line: [ E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include/c++/15.1.0/backward]
-        ignore line: [ E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/include]
-        ignore line: [ E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/../../../../include]
-        ignore line: [ E:/MYSYS/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/15.1.0/include-fixed]
+        ignore line: [ /usr/local/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
         ignore line: [End of search list.]
         ignore line: [Compiler executable checksum: 63c0cddd21fc468e636adb9d7a9358c1]
         ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\\cmTC_6cd2c.dir\\CMakeCXXCompilerABI.cpp.obj' '-c' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles\\cmTC_6cd2c.dir\\']
@@ -321,36 +372,16 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "E:/CMake/share/cmake-4.0/Modules/Internal/CMakeDetermineLinkerId.cmake:36 (message)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCompilerABI.cmake:270 (cmake_determine_linker_id)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "/opt/homebrew/share/cmake/Modules/Internal/CMakeDetermineLinkerId.cmake:36 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:270 (cmake_determine_linker_id)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
       - "CMakeLists.txt:2 (project)"
     message: |
-      Running the CXX compiler's linker: "E:/MYSYS/ucrt64/x86_64-w64-mingw32/bin/ld.exe" "-v"
-      
-  -
-    kind: "message-v1"
-    backtrace:
-      - "E:/CMake/share/cmake-4.0/Modules/Internal/CMakeDetermineLinkerId.cmake:36 (message)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCompilerABI.cmake:270 (cmake_determine_linker_id)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:2 (project)"
-    message: |
-      Running the CXX compiler's linker: "E:/MYSYS/ucrt64/x86_64-w64-mingw32/bin/ld.exe" "-V"
-        Supported emulations:
-         i386pep
-         i386pe
-  -
-    kind: "message-v1"
-    backtrace:
-      - "E:/CMake/share/cmake-4.0/Modules/Internal/CMakeDetermineLinkerId.cmake:36 (message)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeDetermineCompilerABI.cmake:270 (cmake_determine_linker_id)"
-      - "E:/CMake/share/cmake-4.0/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:2 (project)"
-    message: |
-      Running the CXX compiler's linker: "E:/MYSYS/ucrt64/x86_64-w64-mingw32/bin/ld.exe" "--version"
-      Copyright (C) 2025 Free Software Foundation, Inc.
-      This program is free software; you may redistribute it under the terms of
-      the GNU General Public License version 3 or (at your option) a later version.
-      This program has absolutely no warranty.
+      Running the CXX compiler's linker: "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" "-v"
+      @(#)PROGRAM:ld PROJECT:ld-1167.4.1
+      BUILD 20:00:10 Mar 12 2025
+      configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+      will use ld-classic for: armv6 armv7 armv7s i386 armv6m armv7k armv7m armv7em
+      LTO support using: LLVM version 17.0.0 (static support for 29, runtime is 29)
+      TAPI support using: Apple TAPI version 17.0.0 (tapi-1700.0.3.4)
 ...

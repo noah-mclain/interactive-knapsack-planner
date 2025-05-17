@@ -12,8 +12,12 @@ double_knapsack::double_knapsack(int n, vector<int>& weights, vector<int>& value
 }
 
 void double_knapsack::solve() {
+    auto startTime = chrono::high_resolution_clock::now();
     knapsack();
     backtrack();
+    auto endTime = chrono::high_resolution_clock::now();
+    double executionTime = chrono::duration_cast<chrono::nanoseconds>(endTime - startTime).count();
+    double spaceComplexity = get_space_complexity();
 }
 
 void double_knapsack::knapsack() {

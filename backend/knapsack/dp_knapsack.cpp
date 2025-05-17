@@ -46,5 +46,5 @@ vector<int> double_knapsack::get_selected_items() {
 }
 
 int double_knapsack::get_max_profit() {
-    return dp[item_count][capacity];
+    return max_profit;
 }

@@ -26,9 +26,16 @@ class HuffmanTree{
         void setDecodedText(const std::string& decodedText);
         void setRoot(std::shared_ptr<Node> root);
         void setCodes(const std::unordered_map<char, std::string>& codes);
-
     private:
         std::string text;
-
-
+        std::unordered_map<char, int> frequencies;
+        std::unordered_map<char, std::string> codes;
+        std::shared_ptr<Node> root;
+        std::string encodedText;
+        std::string decodedText;
+        std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, std::greater<std::shared_ptr<Node>>> minHeap;
+        void calculateFrequencies();
+        void buildMinHeap();
+        void clear();
+        void clearFrequencies();
 };

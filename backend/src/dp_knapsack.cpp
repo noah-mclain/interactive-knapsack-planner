@@ -36,10 +36,11 @@ void double_knapsack::knapsack() {
 
 void double_knapsack::backtrack() {
     int w = capacity;
-    for (int i = item_count; i > 0 && max_profit > 0; i--) {
-        if (max_profit != dp[i - 1][w]) {
+    int current_profit = max_profit;
+    for (int i = item_count; i > 0 && current_profit > 0; i--) {
+        if (current_profit != dp[i - 1][w]) {
             selected_items.push_back(i - 1);
-            max_profit -= values[i - 1];
+            current_profit -= values[i - 1];
             w -= weights[i - 1];
         }
     }

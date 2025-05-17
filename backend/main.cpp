@@ -5,7 +5,7 @@ using namespace std;
 
 int main(){
     vector<int> weights = {2, 3, 4, 5, 9};
-    vector<int> values = {3, 4, 5, 6, 10};
+    vector<int> values = {5, 5, 5, 5, 10};
     int capacity = 10;
     double_knapsack knapsack(5, weights, values, capacity);
     knapsack.solve();

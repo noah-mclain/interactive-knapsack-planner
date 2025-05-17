@@ -10,7 +10,7 @@ BruteForceKnapsack::BruteForceKnapsack()
 }
 
 void BruteForceKnapsack::addItem(double weight, double profit) {
-    int id = static_cast<int>(items.size()) + 1;
+    int id = static_cast<int>(items.size());
     items.emplace_back(id, weight, profit);
 }
 
@@ -40,7 +40,7 @@ std::vector<std::vector<bool>> BruteForceKnapsack::generateSubsets(size_t n) {
     return subsets;
 }
 
-std::vector<Item> BruteForceKnapsack::solve() {
+std::tuple<std::vector<Item>, std::chrono::nanoseconds, size_t> BruteForceKnapsack::solve() {
     // Track memory usage before operation
     size_t initialMemory = items.capacity() * sizeof(Item);
     
@@ -71,6 +71,7 @@ std::vector<Item> BruteForceKnapsack::solve() {
         if (totalWeight <= capacity && totalProfit > maxProfit) {
             maxProfit = totalProfit;
             bestSubset = subset;
+            max_profit = totalProfit;
         }
     }
     
@@ -90,7 +91,8 @@ std::vector<Item> BruteForceKnapsack::solve() {
     size_t subsetsMemory = subsets.size() * subsets[0].size() * sizeof(bool);
     memoryUsage = initialMemory + subsetsMemory + selectedItems.capacity() * sizeof(Item);
     
-    return selectedItems;
+    // Return tuple with results
+    return std::make_tuple(selectedItems, executionTime, memoryUsage);
 }
 
 std::vector<Item> BruteForceKnapsack::getItems() const {
@@ -113,4 +115,7 @@ std::string BruteForceKnapsack::getSpaceComplexity() const {
     return "O(2^n) - we store all possible combinations of items";
 }
 
+int BruteForceKnapsack::getMaxProfit() const {
+    return max_profit;
 } // namespace knapsack
+}

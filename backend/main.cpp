@@ -1,7 +1,12 @@
 #include "include/knapsack/greedy_knapsack.hpp"
+#include "include/knapsack/knapsack_solver.hpp"
 #include <iostream>
 #include <iomanip>
 #include <chrono>
+#include <vector>
+
+using namespace std;
+using namespace knapsack;
 
 void printItem(const knapsack::Item& item) {
     std::cout << "Item " << item.id 
@@ -12,6 +17,7 @@ void printItem(const knapsack::Item& item) {
 
 int main() {
     // Create a knapsack solver instance
+    /*
     knapsack::GreedyKnapsack solver;
     
     // Set capacity
@@ -63,6 +69,18 @@ int main() {
     std::cout << "Time complexity: " << solver.getTimeComplexity() << std::endl;
     std::cout << "Memory usage: " << solver.getMemoryUsage() << " bytes" << std::endl;
     std::cout << "Space complexity: " << solver.getSpaceComplexity() << std::endl;
-    
+    */
+   /* (23, 87)
+(4, 16)
+(102, 58)
+(77, 39)
+(9, 250)
+   */
+    vector<int> weights = {23, 4, 102, 77, 4, 6, 2, 7, 3, 5, 4};
+    vector<int> values  = {87, 16, 58, 9, 12, 6, 18, 9, 14, 11, 13};
+    int capacity = 25;
+    bool algorithms[3] = {true, true, true}; // Greedy, Brute Force, Dynamic Programming
+    KnapsackSolver solver(weights.size(), weights, values, capacity, algorithms);
+    solver.solve();
     return 0;
 }

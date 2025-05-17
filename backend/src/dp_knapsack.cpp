@@ -1,4 +1,5 @@
 #include "../include/knapsack/dp_knapsack.hpp"
+#include <iostream>
 
 using namespace std;
 
@@ -18,6 +19,16 @@ void double_knapsack::solve() {
     auto endTime = chrono::high_resolution_clock::now();
     double executionTime = chrono::duration_cast<chrono::nanoseconds>(endTime - startTime).count();
     double spaceComplexity = get_space_complexity();
+    cout << "Execution Time: " << (executionTime / 1000000.0) << " ms" << endl;
+    cout << "Space Complexity: " << spaceComplexity << " bytes" << endl;
+    cout << "Max Profit: " << max_profit << endl;
+    cout << "Selected items: ";
+    for (const auto& item : selected_items) {
+        cout << item << " ";
+    }
+    cout << endl;
+    cout << "Selected items count: " << selected_items.size() << endl;
+    
 }
 
 void double_knapsack::knapsack() {

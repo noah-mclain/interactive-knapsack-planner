@@ -15,7 +15,7 @@ GreedyKnapsack::GreedyKnapsack()
 }
 
 void GreedyKnapsack::addItem(double weight, double profit) {
-    int id = static_cast<int>(items.size()) + 1;
+    int id = static_cast<int>(items.size());
     items.emplace_back(id, weight, profit);
 }
 
@@ -27,7 +27,7 @@ void GreedyKnapsack::clearItems() {
     items.clear();
 }
 
-std::vector<Item> GreedyKnapsack::solve() {
+std::tuple<std::vector<Item>, std::chrono::nanoseconds, size_t, double> GreedyKnapsack::solve() {
     // Track memory usage before operation
     size_t initialMemory = items.capacity() * sizeof(Item);
     
@@ -46,12 +46,14 @@ std::vector<Item> GreedyKnapsack::solve() {
     // Apply the greedy approach - select items in order of highest ratio first
     std::vector<Item> selectedItems;
     double currentWeight = 0;
+    double maxProfit = 0;
     
     for (const auto& item : sortedItems) {
         // For 0/1 knapsack, we can either take an item or not, no fractional selection
         if (currentWeight + item.weight <= capacity) {
             selectedItems.push_back(item);
             currentWeight += item.weight;
+            maxProfit += item.profit;
         }
     }
     
@@ -62,7 +64,8 @@ std::vector<Item> GreedyKnapsack::solve() {
     // Calculate memory usage
     memoryUsage = initialMemory + (sortedItems.capacity() + selectedItems.capacity()) * sizeof(Item);
     
-    return selectedItems;
+    // Return tuple with results
+    return std::make_tuple(selectedItems, executionTime, memoryUsage, maxProfit);
 }
 
 std::vector<Item> GreedyKnapsack::getItems() const {

@@ -3,6 +3,7 @@
 #include <vector>
 #include <chrono>
 #include <string>
+#include <tuple>
 namespace knapsack {
 
 // Structure to represent an item with weight and profit
@@ -37,7 +38,7 @@ public:
     void clearItems();
     
     // Solve the knapsack problem using the greedy approach
-    std::vector<Item> solve();
+    std::tuple<std::vector<Item>, std::chrono::nanoseconds, size_t, double> solve();
     
     // Get all items
     std::vector<Item> getItems() const;

@@ -3,6 +3,7 @@
 #include <vector>
 #include <chrono>
 #include <string>
+#include <tuple>
 #include "greedy_knapsack.hpp"  // Reuse the Item struct
 
 namespace knapsack {
@@ -12,6 +13,7 @@ class BruteForceKnapsack {
 private:
     std::vector<Item> items;
     double capacity;
+    int max_profit;
     
     // Helper function to generate all possible subsets
     std::vector<std::vector<bool>> generateSubsets(size_t n);
@@ -33,7 +35,7 @@ public:
     void clearItems();
     
     // Solve the knapsack problem using the brute force approach
-    std::vector<Item> solve();
+    std::tuple<std::vector<Item>, std::chrono::nanoseconds, size_t> solve();
     
     // Get all items
     std::vector<Item> getItems() const;
@@ -43,6 +45,7 @@ public:
     std::string getTimeComplexity() const;
     size_t getMemoryUsage() const;
     std::string getSpaceComplexity() const;
+    int getMaxProfit() const;
 };
 
 } // namespace knapsack 

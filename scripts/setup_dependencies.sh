@@ -31,13 +31,16 @@ case "$OS_TYPE" in
     Linux*)     
         LINUX=true
         print_info "Detected Linux environment ($OS_ARCH)"
+        SFML_VERSION="3.0.0"
         ;;
     Darwin*)    
         MAC=true
         print_info "Detected macOS environment ($OS_ARCH)"
+        SFML_VERSION="3.0.1"
         ;;
     MINGW*|MSYS*|CYGWIN*)
         WINDOWS=true
+        SFML_VERSION="3.0.0"
         # Detect MinGW environment
         if [[ -n "$MSYSTEM" ]]; then
             MINGW=true
@@ -48,6 +51,7 @@ case "$OS_TYPE" in
         ;;
     *)
         print_warning "Unknown OS type: $OS_TYPE, proceeding with generic setup"
+        SFML_VERSION="3.0.0"
         ;;
 esac
 
@@ -82,12 +86,14 @@ fi
 # Platform-specific setup
 if $LINUX; then
     print_info "Checking SFML on Linux..."
+    print_info "Required SFML version: $SFML_VERSION"
     if ! dpkg -l | grep -q libsfml-dev; then
         print_info "SFML doesn't seem to be installed. Please install it with:"
         echo "sudo apt-get install libsfml-dev"
     fi
 elif $MAC; then
     print_info "Checking SFML on macOS..."
+    print_info "Required SFML version: $SFML_VERSION"
     if ! brew list | grep -q sfml; then
         print_info "SFML doesn't seem to be installed. Please install it with:"
         echo "brew install sfml"
@@ -100,6 +106,8 @@ elif $MAC; then
     fi
 elif $WINDOWS; then
     print_info "SFML on Windows should be installed manually."
+    print_info "Required SFML version: $SFML_VERSION"
+    print_info "Expected path: E:/Libraries/SFML-3.0.0"
     echo "Please follow instructions at: https://www.sfml-dev.org/download.php"
 fi
 

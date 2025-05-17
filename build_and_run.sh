@@ -34,12 +34,15 @@ print_platform_info() {
             print_info "Environment: Native Windows"
         fi
         print_info "SFML Path:   E:/Libraries/SFML-3.0.0"
+        print_info "SFML Version: 3.0.0"
         print_info "GLSL Version: #version 130"
     elif $MAC; then
         print_info "Platform:    macOS"
+        print_info "SFML Version: 3.0.1"
         print_info "GLSL Version: #version 120"
     elif $LINUX; then
         print_info "Platform:    Linux"
+        print_info "SFML Version: 3.0.0"
         print_info "GLSL Version: #version 130"
     fi
     print_info "=============================================="

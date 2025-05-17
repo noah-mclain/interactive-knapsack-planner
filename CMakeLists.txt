@@ -22,6 +22,9 @@ if(WIN32)
   include_directories("E:/Libraries/SFML-3.0.0/include")
   link_directories("E:/Libraries/SFML-3.0.0/lib")
   
+  # Set Windows-specific SFML version
+  set(SFML_VERSION_REQUIRED "3.0.0")
+  
   # Set Windows GLSL version
   set(GLSL_VERSION "#version 130")
 elseif(APPLE)
@@ -32,11 +35,18 @@ elseif(APPLE)
   include_directories("/opt/homebrew/include")
   link_directories("/opt/homebrew/lib")
   
+  # Set macOS-specific SFML version
+  set(SFML_VERSION_REQUIRED "3.0.1")
+  
   # Set macOS GLSL version
   set(GLSL_VERSION "#version 120")
 elseif(UNIX)
   # Linux-specific configurations
   add_compile_options(-Wall -Wextra)
+  
+  # Set Linux-specific SFML version
+  set(SFML_VERSION_REQUIRED "3.0.0")
+  
   # Set Linux GLSL version
   set(GLSL_VERSION "#version 130")
 endif()
@@ -63,9 +73,10 @@ endif()
 
 # Print the GLSL version we're using
 message(STATUS "Using GLSL version: ${GLSL_VERSION}")
+message(STATUS "Using SFML version: ${SFML_VERSION_REQUIRED}")
 
-# Find SFML package
-find_package(SFML 3.0.1 COMPONENTS Graphics Window Audio Network REQUIRED)
+# Find SFML package with platform-specific version
+find_package(SFML ${SFML_VERSION_REQUIRED} COMPONENTS Graphics Window Audio Network REQUIRED)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)

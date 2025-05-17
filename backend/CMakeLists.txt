@@ -30,6 +30,16 @@ add_executable(knapsack_main
 # Link the executable with the knapsack library
 target_link_libraries(knapsack_main PRIVATE knapsack)
 
+# Link SFML and ImGui to the main executable
+target_link_libraries(knapsack_main PRIVATE 
+    sfml-graphics 
+    sfml-window 
+    sfml-system 
+    sfml-network 
+    sfml-audio
+    imgui
+)
+
 # Install targets (optional)
 include(GNUInstallDirs)
 install(TARGETS knapsack knapsack_main 

@@ -15,6 +15,10 @@ if [[ "$1" == "--clean" ]]; then
     clean_build
 fi
 
+# Setup dependencies (SFML should be installed by the user, ImGui will be downloaded)
+echo "[INFO] Setting up dependencies..."
+./scripts/setup_dependencies.sh
+
 # Detect OS using uname
 OS_TYPE=$(uname -s)
 WINDOWS=false; LINUX=false; MAC=false; MINGW=false; MINGW_FLAVOR=""

@@ -30,6 +30,34 @@ else()
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
+# Find SFML package
+find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
+
+# Add ImGui as a dependency (We'll build it from source)
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui)
+if(NOT EXISTS ${IMGUI_DIR})
+  message(FATAL_ERROR "ImGui directory not found. Please download ImGui and place it in ${IMGUI_DIR}")
+endif()
+
+# Collect ImGui source files
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sfml.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
+# Create ImGui library
+add_library(imgui STATIC ${IMGUI_SOURCES})
+target_include_directories(imgui PUBLIC 
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+)
+target_link_libraries(imgui PUBLIC sfml-graphics sfml-window sfml-system)
+
 # Add the backend directory
 add_subdirectory(backend)
 
@@ -37,3 +65,4 @@ add_subdirectory(backend)
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "Platform: ${CMAKE_SYSTEM_NAME}")
+message(STATUS "SFML found: ${SFML_FOUND} (version ${SFML_VERSION})")

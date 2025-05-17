@@ -24,7 +24,7 @@ target_include_directories(knapsack PUBLIC
 
 # Create main executable
 add_executable(knapsack_main
-    main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 # Link the executable with the knapsack library

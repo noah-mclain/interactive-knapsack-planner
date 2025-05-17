@@ -48,12 +48,30 @@ if [[ "$OS" == "Windows" ]]; then
     if [[ "$MINGW" == "true" ]]; then
         # MinGW-specific build
         echo "Using MinGW build system..."
-        cmake .. -G "MinGW Makefiles"
-        mingw32-make
         
-        # Run the executable
+        # Add verbose output for better debugging
+        cmake .. -G "MinGW Makefiles" -DCMAKE_VERBOSE_MAKEFILE=ON
+        
+        # Try to build with detailed output
+        set +e  # Don't exit on error for this command
+        mingw32-make VERBOSE=1
+        BUILD_RESULT=$?
+        set -e  # Restore exit on error
+        
+        if [ $BUILD_RESULT -ne 0 ]; then
+            echo "Build failed with exit code $BUILD_RESULT"
+            echo "Please check the error messages above for more details."
+            exit $BUILD_RESULT
+        fi
+        
+        # Run the executable if build succeeded
         echo "Running executable..."
-        ./bin/knapsack_main.exe
+        if [ -f "./bin/knapsack_main.exe" ]; then
+            ./bin/knapsack_main.exe
+        else
+            echo "Error: Executable not found at ./bin/knapsack_main.exe"
+            exit 1
+        fi
     else
         # Standard Windows-specific build with Visual Studio
         cmake .. -G "Visual Studio 16 2019" -A x64
@@ -61,19 +79,29 @@ if [[ "$OS" == "Windows" ]]; then
         
         # Run the executable
         echo "Running executable..."
-        ./bin/Release/knapsack_main.exe
+        if [ -f "./bin/Release/knapsack_main.exe" ]; then
+            ./bin/Release/knapsack_main.exe
+        else
+            echo "Error: Executable not found at ./bin/Release/knapsack_main.exe"
+            exit 1
+        fi
     fi
 else
     # Linux/macOS build
-    cmake ..
-    make
+    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
+    make VERBOSE=1
     
     # Run the executable
     echo "Running executable..."
-    ./bin/knapsack_main
+    if [ -f "./bin/knapsack_main" ]; then
+        ./bin/knapsack_main
+    else
+        echo "Error: Executable not found at ./bin/knapsack_main"
+        exit 1
+    fi
 fi
 
 # Return to original directory
 cd ..
 
-echo "Build and execution completed successfully!" 
+echo "Build and execution completed successfully!"

@@ -3,9 +3,50 @@
 # Exit on error
 set -e
 
+# Print colorized info messages
+print_info() {
+    echo -e "\033[1;34m[INFO]\033[0m $1"
+}
+
+print_warning() {
+    echo -e "\033[1;33m[WARNING]\033[0m $1"
+}
+
+print_error() {
+    echo -e "\033[1;31m[ERROR]\033[0m $1"
+}
+
+print_success() {
+    echo -e "\033[1;32m[SUCCESS]\033[0m $1"
+}
+
+print_platform_info() {
+    print_info "============= PLATFORM INFORMATION ============="
+    print_info "OS Type:     $OS_TYPE"
+    print_info "OS Arch:     $OS_ARCH"
+    print_info "Build Type:  ${CMAKE_BUILD_TYPE:-Release}"
+    
+    if $WINDOWS; then
+        print_info "Platform:    Windows"
+        if $MINGW; then
+            print_info "Environment: MinGW ($MINGW_FLAVOR)"
+        else
+            print_info "Environment: Native Windows"
+        fi
+        print_info "GLSL Version: #version 130"
+    elif $MAC; then
+        print_info "Platform:    macOS"
+        print_info "GLSL Version: #version 120"
+    elif $LINUX; then
+        print_info "Platform:    Linux"
+        print_info "GLSL Version: #version 130"
+    fi
+    print_info "=============================================="
+}
+
 # Function to clean build
 clean_build() {
-    echo "[INFO] Cleaning build directory..."
+    print_info "Cleaning build directory..."
     rm -rf build
     mkdir -p build
 }
@@ -16,21 +57,22 @@ if [[ "$1" == "--clean" ]]; then
 fi
 
 # Setup dependencies (SFML should be installed by the user, ImGui will be downloaded)
-echo "[INFO] Setting up dependencies..."
+print_info "Setting up dependencies..."
 ./scripts/setup_dependencies.sh
 
 # Detect OS using uname
 OS_TYPE=$(uname -s)
+OS_ARCH=$(uname -m)
 WINDOWS=false; LINUX=false; MAC=false; MINGW=false; MINGW_FLAVOR=""
 
 case "$OS_TYPE" in
     Linux*)     
         LINUX=true
-        echo "[INFO] Detected Linux environment"
+        print_info "Detected Linux environment ($OS_ARCH)"
         ;;
     Darwin*)    
         MAC=true
-        echo "[INFO] Detected macOS environment"
+        print_info "Detected macOS environment ($OS_ARCH)"
         ;;
     MINGW*|MSYS*|CYGWIN*)
         WINDOWS=true
@@ -38,33 +80,36 @@ case "$OS_TYPE" in
         # Detect MinGW environment
         if [[ -n "$MSYSTEM" ]]; then
             MINGW=true
-            echo "[INFO] Detected MinGW environment: $MSYSTEM"
+            print_info "Detected MinGW environment: $MSYSTEM ($OS_ARCH)"
             
             # Detect specific MinGW flavor
             if [[ "$MSYSTEM" == "UCRT64" ]]; then
                 MINGW_FLAVOR="ucrt64"
-                echo "[INFO] Using UCRT64 toolchain"
+                print_info "Using UCRT64 toolchain"
             elif [[ "$MSYSTEM" == "MINGW64" ]]; then
                 MINGW_FLAVOR="mingw64"
-                echo "[INFO] Using MINGW64 toolchain"
+                print_info "Using MINGW64 toolchain"
             elif [[ "$MSYSTEM" == "MINGW32" ]]; then
                 MINGW_FLAVOR="mingw32"
-                echo "[INFO] Using MINGW32 toolchain"
+                print_info "Using MINGW32 toolchain"
             else
                 MINGW_FLAVOR="mingw"
-                echo "[INFO] Using generic MinGW toolchain"
+                print_info "Using generic MinGW toolchain"
             fi
         else
-            echo "[INFO] Detected Windows environment without MinGW"
+            print_info "Detected Windows environment without MinGW ($OS_ARCH)"
         fi
         ;;
     *)
-        echo "[ERROR] Unsupported OS: $OS_TYPE"
+        print_error "Unsupported OS: $OS_TYPE"
         exit 1
         ;;
 esac
 
-echo "[INFO] Building for $OS_TYPE..."
+# Display platform information
+print_platform_info
+
+print_info "Building for $OS_TYPE ($OS_ARCH)..."
 
 # Create build directory if it doesn't exist
 mkdir -p build
@@ -72,76 +117,95 @@ mkdir -p build
 # Navigate to build directory
 cd build
 
-# Print commands before execution
-set -x
+# Build options
+CMAKE_OPTIONS=""
 
-# Run cmake based on OS
+# Add OS-specific cmake options
+if $MAC; then
+    # Add arch flag for Apple Silicon if needed
+    if [[ "$OS_ARCH" == "arm64" ]]; then
+        CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_OSX_ARCHITECTURES=arm64"
+    fi
+fi
+
+# Run cmake based on OS with verbose output for debugging
+print_info "Configuring project with CMake..."
 if $WINDOWS; then
     if $MINGW; then
         # MinGW-specific build
-        echo "[INFO] Using MinGW build system..."
+        print_info "Using MinGW build system..."
         
         # Add verbose output for better debugging
-        cmake .. -G "MinGW Makefiles" -DCMAKE_VERBOSE_MAKEFILE=ON
+        cmake .. -G "MinGW Makefiles" -DCMAKE_VERBOSE_MAKEFILE=ON $CMAKE_OPTIONS
         
         # Try to build with detailed output
         set +e  # Don't exit on error for this command
+        print_info "Building project..."
         mingw32-make VERBOSE=1
         BUILD_RESULT=$?
         set -e  # Restore exit on error
         
         if [ $BUILD_RESULT -ne 0 ]; then
-            echo "[ERROR] Build failed with exit code $BUILD_RESULT"
-            echo "[ERROR] Please check the error messages above for more details."
+            print_error "Build failed with exit code $BUILD_RESULT"
+            print_error "Please check the error messages above for more details."
             exit $BUILD_RESULT
         fi
         
         # Run the executable if build succeeded
-        echo "[INFO] Running executable..."
+        print_info "Running executable..."
         if [ -f "./bin/knapsack_main.exe" ]; then
             ./bin/knapsack_main.exe
         else
-            echo "[ERROR] Executable not found at ./bin/knapsack_main.exe"
+            print_error "Executable not found at ./bin/knapsack_main.exe"
             exit 1
         fi
     else
         # Standard Windows-specific build with Visual Studio
-        cmake .. -G "Visual Studio 16 2019" -A x64
+        print_info "Using Visual Studio build system..."
+        cmake .. -G "Visual Studio 16 2019" -A x64 $CMAKE_OPTIONS
+        
+        print_info "Building project..."
         cmake --build . --config Release
         
         # Run the executable
-        echo "[INFO] Running executable..."
+        print_info "Running executable..."
         if [ -f "./bin/Release/knapsack_main.exe" ]; then
             ./bin/Release/knapsack_main.exe
         else
-            echo "[ERROR] Executable not found at ./bin/Release/knapsack_main.exe"
+            print_error "Executable not found at ./bin/Release/knapsack_main.exe"
             exit 1
         fi
     fi
 elif $LINUX; then
     # Linux build
-    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
+    print_info "Using Unix Makefiles..."
+    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON $CMAKE_OPTIONS
+    
+    print_info "Building project..."
     make VERBOSE=1
     
     # Run the executable
-    echo "[INFO] Running executable..."
+    print_info "Running executable..."
     if [ -f "./bin/knapsack_main" ]; then
         ./bin/knapsack_main
     else
-        echo "[ERROR] Executable not found at ./bin/knapsack_main"
+        print_error "Executable not found at ./bin/knapsack_main"
         exit 1
     fi
 elif $MAC; then
     # macOS build
-    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
+    print_info "Using Unix Makefiles..."
+    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON $CMAKE_OPTIONS
+    
+    print_info "Building project..."
     make VERBOSE=1
     
     # Run the executable
-    echo "[INFO] Running executable..."
+    print_info "Running executable..."
     if [ -f "./bin/knapsack_main" ]; then
         ./bin/knapsack_main
     else
-        echo "[ERROR] Executable not found at ./bin/knapsack_main"
+        print_error "Executable not found at ./bin/knapsack_main"
         exit 1
     fi
 fi
@@ -149,4 +213,4 @@ fi
 # Return to original directory
 cd ..
 
-echo "[SUCCESS] Build and execution completed successfully! ✅"
+print_success "Build and execution completed successfully! ✅"

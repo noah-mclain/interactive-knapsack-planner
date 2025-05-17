@@ -33,5 +33,4 @@ build/
 *.app
 
 .vscode/
-imgui/
-imgui-sfml/
+external/

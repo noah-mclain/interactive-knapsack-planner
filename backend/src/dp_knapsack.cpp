@@ -1,4 +1,4 @@
-#include "../backend/include/knapsack/dp_knapsack.hpp"
+#include "../include/knapsack/dp_knapsack.hpp"
 
 using namespace std;
 

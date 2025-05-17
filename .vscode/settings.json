@@ -53,7 +53,7 @@
   "C_Cpp_Runner.showCompilationTime": false,
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
-  "workbench.colorTheme": "PinkBlue Monodark",
+  "workbench.colorTheme": "PinkBlue",
   "files.associations": {
     "*.embeddedhtml": "html",
     "array": "cpp",

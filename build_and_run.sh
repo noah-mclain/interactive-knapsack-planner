@@ -27,8 +27,21 @@ elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]];
     OS="Windows"
     
     # Detect if running in MinGW/MSYS environment
-    if [[ -n "$MSYSTEM" && "$MSYSTEM" == "MINGW"* ]]; then
+    if [[ -n "$MSYSTEM" ]]; then
         MINGW=true
+        echo "Detected MinGW environment: $MSYSTEM"
+        
+        # Detect UCRT64 specifically
+        if [[ "$MSYSTEM" == "UCRT64" || "$MSYSTEM" == "MINGW64" ]]; then
+            MINGW_FLAVOR="ucrt64"
+            echo "Using UCRT64/MINGW64 toolchain"
+        elif [[ "$MSYSTEM" == "MINGW32" ]]; then
+            MINGW_FLAVOR="mingw32"
+            echo "Using MINGW32 toolchain"
+        else
+            MINGW_FLAVOR="mingw"
+            echo "Using generic MinGW toolchain"
+        fi
     fi
 else
     echo "Unsupported OS: $OSTYPE"
@@ -53,8 +66,17 @@ if [[ "$OS" == "Windows" ]]; then
         cmake .. -G "MinGW Makefiles" -DCMAKE_VERBOSE_MAKEFILE=ON
         
         # Try to build with detailed output
+        # Use specific make command based on MinGW flavor
         set +e  # Don't exit on error for this command
-        mingw32-make VERBOSE=1
+        
+        if [[ "$MINGW_FLAVOR" == "ucrt64" ]]; then
+            # For UCRT64, might need specific path or environment
+            mingw32-make VERBOSE=1
+        else
+            # Default MinGW make command
+            mingw32-make VERBOSE=1
+        fi
+        
         BUILD_RESULT=$?
         set -e  # Restore exit on error
         

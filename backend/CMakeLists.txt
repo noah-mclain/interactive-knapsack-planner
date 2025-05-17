@@ -65,33 +65,31 @@ elseif(WIN32)
       opengl32 # Explicitly link OpenGL on Windows
   )
   
-  # Copy SFML DLLs to output directory for Windows
+  # Get proper DLL suffix based on build type
+  set(DLL_SUFFIX "")
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(SFML_DLLS 
-      "E:/Libraries/SFML-3.0.0/bin/sfml-graphics-d-3.dll"
-      "E:/Libraries/SFML-3.0.0/bin/sfml-window-d-3.dll"
-      "E:/Libraries/SFML-3.0.0/bin/sfml-system-d-3.dll"
-      "E:/Libraries/SFML-3.0.0/bin/sfml-audio-d-3.dll"
-      "E:/Libraries/SFML-3.0.0/bin/sfml-network-d-3.dll"
-    )
-  else()
-    set(SFML_DLLS 
-      "E:/Libraries/SFML-3.0.0/bin/sfml-graphics-3.dll"
-      "E:/Libraries/SFML-3.0.0/bin/sfml-window-3.dll"
-      "E:/Libraries/SFML-3.0.0/bin/sfml-system-3.dll"
-      "E:/Libraries/SFML-3.0.0/bin/sfml-audio-3.dll"
-      "E:/Libraries/SFML-3.0.0/bin/sfml-network-3.dll"
-    )
+    set(DLL_SUFFIX "-d")
   endif()
   
-  # Add post-build command to copy DLLs
-  foreach(DLL ${SFML_DLLS})
-    add_custom_command(TARGET knapsack_main POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      ${DLL}
-      $<TARGET_FILE_DIR:knapsack_main>
+  # Set SFML DLL paths for Release/Debug
+  set(SFML_DLL_PATHS
+    "${CMAKE_SOURCE_DIR}/external/SFML-3.0.0/bin/sfml-graphics${DLL_SUFFIX}-3.dll"
+    "${CMAKE_SOURCE_DIR}/external/SFML-3.0.0/bin/sfml-window${DLL_SUFFIX}-3.dll"
+    "${CMAKE_SOURCE_DIR}/external/SFML-3.0.0/bin/sfml-system${DLL_SUFFIX}-3.dll"
+    "${CMAKE_SOURCE_DIR}/external/SFML-3.0.0/bin/sfml-audio${DLL_SUFFIX}-3.dll"
+    "${CMAKE_SOURCE_DIR}/external/SFML-3.0.0/bin/sfml-network${DLL_SUFFIX}-3.dll"
+  )
+  
+  # Try alternative path if not found
+  if(NOT EXISTS "${SFML_DLL_PATHS}")
+    set(SFML_DLL_PATHS
+      "E:/Libraries/SFML-3.0.0/bin/sfml-graphics${DLL_SUFFIX}-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-window${DLL_SUFFIX}-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-system${DLL_SUFFIX}-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-audio${DLL_SUFFIX}-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-network${DLL_SUFFIX}-3.dll"
     )
-  endforeach()
+  endif()
 else()
   # Linux and other platforms
   target_link_libraries(knapsack_main PRIVATE 

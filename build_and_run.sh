@@ -55,6 +55,33 @@ clean_build() {
     mkdir -p build
 }
 
+# Function to manually copy Windows DLLs
+copy_windows_dlls() {
+    local target_dir="$1"
+    local sfml_dir="E:/Libraries/SFML-3.0.0"
+    local config="$2"
+    
+    # Determine suffix based on build configuration
+    local dll_suffix=""
+    if [[ "$config" == "Debug" ]]; then
+        dll_suffix="-d"
+    fi
+    
+    print_info "Copying SFML DLLs to $target_dir..."
+    
+    # Copy required SFML DLLs
+    cp -v "${sfml_dir}/bin/sfml-graphics${dll_suffix}-3.dll" "$target_dir"
+    cp -v "${sfml_dir}/bin/sfml-window${dll_suffix}-3.dll" "$target_dir"
+    cp -v "${sfml_dir}/bin/sfml-system${dll_suffix}-3.dll" "$target_dir"
+    cp -v "${sfml_dir}/bin/sfml-audio${dll_suffix}-3.dll" "$target_dir"
+    cp -v "${sfml_dir}/bin/sfml-network${dll_suffix}-3.dll" "$target_dir"
+    
+    # Copy dependencies (if they exist)
+    if [[ -f "${sfml_dir}/bin/openal32.dll" ]]; then
+        cp -v "${sfml_dir}/bin/openal32.dll" "$target_dir"
+    fi
+}
+
 # Check if clean build is requested
 if [[ "$1" == "--clean" ]]; then
     clean_build
@@ -68,6 +95,7 @@ print_info "Setting up dependencies..."
 OS_TYPE=$(uname -s)
 OS_ARCH=$(uname -m)
 WINDOWS=false; LINUX=false; MAC=false; MINGW=false; MINGW_FLAVOR=""
+BUILD_CONFIG="Release"
 
 case "$OS_TYPE" in
     Linux*)     
@@ -110,10 +138,16 @@ case "$OS_TYPE" in
         ;;
 esac
 
+# Check for debug build
+if [[ "$1" == "--debug" || "$2" == "--debug" ]]; then
+    BUILD_CONFIG="Debug"
+    print_info "Building in Debug mode"
+fi
+
 # Display platform information
 print_platform_info
 
-print_info "Building for $OS_TYPE ($OS_ARCH)..."
+print_info "Building for $OS_TYPE ($OS_ARCH) in $BUILD_CONFIG mode..."
 
 # Create build directory if it doesn't exist
 mkdir -p build
@@ -132,9 +166,9 @@ if $MAC; then
     fi
 elif $WINDOWS; then
     # Set Windows SFML path
-    # Note: Path is already hardcoded in CMakeLists.txt
-    # but can be overridden here if needed
     CMAKE_OPTIONS="$CMAKE_OPTIONS -DSFML_DIR=E:/Libraries/SFML-3.0.0/lib/cmake/SFML"
+    # Set build type
+    CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_BUILD_TYPE=$BUILD_CONFIG"
 fi
 
 # Run cmake based on OS with verbose output for debugging
@@ -160,10 +194,20 @@ if $WINDOWS; then
             exit $BUILD_RESULT
         fi
         
+        # Manually copy DLLs
+        print_info "Ensuring DLLs are available..."
+        EXEC_DIR="./bin"
+        copy_windows_dlls "$EXEC_DIR" "$BUILD_CONFIG"
+        
         # Run the executable if build succeeded
         print_info "Running executable..."
         if [ -f "./bin/knapsack_main.exe" ]; then
-            ./bin/knapsack_main.exe
+            # Change to executable directory to ensure DLLs are found
+            cd ./bin
+            print_info "Working directory: $(pwd)"
+            ./knapsack_main.exe
+            # Return to build dir after execution
+            cd ..
         else
             print_error "Executable not found at ./bin/knapsack_main.exe"
             exit 1
@@ -175,21 +219,31 @@ if $WINDOWS; then
         cmake .. -G "Visual Studio 17 2022" -A x64 $CMAKE_OPTIONS || cmake .. -G "Visual Studio 16 2019" -A x64 $CMAKE_OPTIONS
         
         print_info "Building project..."
-        cmake --build . --config Release
+        cmake --build . --config $BUILD_CONFIG
+        
+        # Manually copy DLLs
+        print_info "Ensuring DLLs are available..."
+        EXEC_DIR="./bin/$BUILD_CONFIG"
+        copy_windows_dlls "$EXEC_DIR" "$BUILD_CONFIG"
         
         # Run the executable
         print_info "Running executable..."
-        if [ -f "./bin/Release/knapsack_main.exe" ]; then
-            ./bin/Release/knapsack_main.exe
+        if [ -f "./bin/$BUILD_CONFIG/knapsack_main.exe" ]; then
+            # Change to executable directory to ensure DLLs are found
+            cd "./bin/$BUILD_CONFIG"
+            print_info "Working directory: $(pwd)"
+            ./knapsack_main.exe
+            # Return to build dir after execution
+            cd ../..
         else
-            print_error "Executable not found at ./bin/Release/knapsack_main.exe"
+            print_error "Executable not found at ./bin/$BUILD_CONFIG/knapsack_main.exe"
             exit 1
         fi
     fi
 elif $LINUX; then
     # Linux build
     print_info "Using Unix Makefiles..."
-    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON $CMAKE_OPTIONS
+    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=$BUILD_CONFIG $CMAKE_OPTIONS
     
     print_info "Building project..."
     make VERBOSE=1
@@ -205,7 +259,7 @@ elif $LINUX; then
 elif $MAC; then
     # macOS build
     print_info "Using Unix Makefiles..."
-    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON $CMAKE_OPTIONS
+    cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=$BUILD_CONFIG $CMAKE_OPTIONS
     
     print_info "Building project..."
     make VERBOSE=1

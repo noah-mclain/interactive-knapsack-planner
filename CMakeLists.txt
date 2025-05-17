@@ -16,6 +16,12 @@ if(WIN32)
   # Windows-specific configurations
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  
+  # Add Windows-specific SFML path
+  set(SFML_DIR "E:/Libraries/SFML-3.0.0/lib/cmake/SFML")
+  include_directories("E:/Libraries/SFML-3.0.0/include")
+  link_directories("E:/Libraries/SFML-3.0.0/lib")
+  
   # Set Windows GLSL version
   set(GLSL_VERSION "#version 130")
 elseif(APPLE)

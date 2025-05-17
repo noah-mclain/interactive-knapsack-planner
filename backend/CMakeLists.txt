@@ -33,7 +33,7 @@ message(STATUS "Using GLSL version: ${GLSL_VERSION}")
 # Link the executable with the knapsack library
 target_link_libraries(knapsack_main PRIVATE knapsack)
 
-# On macOS, specify the exact SFML paths
+# Platform-specific library linking
 if(APPLE)
   # Find the full paths to the SFML libraries
   find_library(SFML_GRAPHICS_LIBRARY NAMES sfml-graphics PATHS /opt/homebrew/lib REQUIRED)
@@ -52,8 +52,48 @@ if(APPLE)
       imgui
       ${OPENGL_LIBRARIES}
   )
+elseif(WIN32)
+  # On Windows, use the SFML CMake targets directly
+  target_link_libraries(knapsack_main PRIVATE 
+      sfml-graphics 
+      sfml-window 
+      sfml-system
+      sfml-audio
+      sfml-network
+      imgui
+      ${OPENGL_LIBRARIES}
+      opengl32 # Explicitly link OpenGL on Windows
+  )
+  
+  # Copy SFML DLLs to output directory for Windows
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(SFML_DLLS 
+      "E:/Libraries/SFML-3.0.0/bin/sfml-graphics-d-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-window-d-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-system-d-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-audio-d-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-network-d-3.dll"
+    )
+  else()
+    set(SFML_DLLS 
+      "E:/Libraries/SFML-3.0.0/bin/sfml-graphics-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-window-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-system-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-audio-3.dll"
+      "E:/Libraries/SFML-3.0.0/bin/sfml-network-3.dll"
+    )
+  endif()
+  
+  # Add post-build command to copy DLLs
+  foreach(DLL ${SFML_DLLS})
+    add_custom_command(TARGET knapsack_main POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${DLL}
+      $<TARGET_FILE_DIR:knapsack_main>
+    )
+  endforeach()
 else()
-  # Link SFML and ImGui to the main executable
+  # Linux and other platforms
   target_link_libraries(knapsack_main PRIVATE 
       sfml-graphics 
       sfml-window 

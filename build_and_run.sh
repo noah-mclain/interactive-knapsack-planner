@@ -33,6 +33,7 @@ print_platform_info() {
         else
             print_info "Environment: Native Windows"
         fi
+        print_info "SFML Path:   E:/Libraries/SFML-3.0.0"
         print_info "GLSL Version: #version 130"
     elif $MAC; then
         print_info "Platform:    macOS"
@@ -126,6 +127,11 @@ if $MAC; then
     if [[ "$OS_ARCH" == "arm64" ]]; then
         CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_OSX_ARCHITECTURES=arm64"
     fi
+elif $WINDOWS; then
+    # Set Windows SFML path
+    # Note: Path is already hardcoded in CMakeLists.txt
+    # but can be overridden here if needed
+    CMAKE_OPTIONS="$CMAKE_OPTIONS -DSFML_DIR=E:/Libraries/SFML-3.0.0/lib/cmake/SFML"
 fi
 
 # Run cmake based on OS with verbose output for debugging
@@ -162,7 +168,8 @@ if $WINDOWS; then
     else
         # Standard Windows-specific build with Visual Studio
         print_info "Using Visual Studio build system..."
-        cmake .. -G "Visual Studio 16 2019" -A x64 $CMAKE_OPTIONS
+        # Use a newer Visual Studio version if available
+        cmake .. -G "Visual Studio 17 2022" -A x64 $CMAKE_OPTIONS || cmake .. -G "Visual Studio 16 2019" -A x64 $CMAKE_OPTIONS
         
         print_info "Building project..."
         cmake --build . --config Release

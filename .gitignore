@@ -25,15 +25,10 @@
 *.la
 *.a
 *.lib
+*.lh
 
 # Executables
 build/
-build/CMakeFiles/
-build/CMakeCache.txt
-build/Makefile
-build/cmake_install.cmake
-build/install_manifest.txt
-build/compile_commands.json
 *.exe
 *.out
 *.app
@@ -41,3 +36,7 @@ build/compile_commands.json
 .vscode/
 external/
 imgui/
+build/CMakeCache.txt
+build/CMakeFiles/4.0.2/CMakeSystem.cmake
+build/CMakeFiles/CMakeConfigureLog.yaml
+/build/CMakeFiles

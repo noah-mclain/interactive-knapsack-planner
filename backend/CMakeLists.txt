@@ -10,6 +10,8 @@ file(GLOB KNAPSACK_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/node.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_sfml_bridge.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/branch_bound_knapsack.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/huffman_gui.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack_gui.cpp"
 )
 
 add_library(knapsack ${KNAPSACK_SOURCES})

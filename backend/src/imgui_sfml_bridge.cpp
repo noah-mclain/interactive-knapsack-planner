@@ -72,8 +72,14 @@ void ProcessEvent(const sf::Event& event) {
     }
     else if (event.is<sf::Event::MouseWheelScrolled>()) {
         if (const auto* mouseWheel = event.getIf<sf::Event::MouseWheelScrolled>()) {
-            if (mouseWheel->wheel == sf::Mouse::Wheel::Vertical)
+            if (mouseWheel->wheel == sf::Mouse::Wheel::Vertical) {
+                // Vertical scrolling - normal behavior
                 s_mouseWheel += mouseWheel->delta;
+            }
+            else if (mouseWheel->wheel == sf::Mouse::Wheel::Horizontal) {
+                // Horizontal scrolling (touchpad two-finger swipe)
+                io.MouseWheelH += mouseWheel->delta;
+            }
         }
     }
     else if (event.is<sf::Event::KeyPressed>()) {
@@ -83,6 +89,44 @@ void ProcessEvent(const sf::Event& event) {
             io.KeyShift = keyPressed->shift;
             io.KeyAlt = keyPressed->alt;
             io.KeySuper = keyPressed->system;
+            
+            // Manually map keys - newer ImGui versions need this
+            switch (keyPressed->code) {
+                case sf::Keyboard::Key::Backspace: io.AddKeyEvent(ImGuiKey_Backspace, true); break;
+                case sf::Keyboard::Key::Delete: io.AddKeyEvent(ImGuiKey_Delete, true); break;
+                case sf::Keyboard::Key::Tab: io.AddKeyEvent(ImGuiKey_Tab, true); break;
+                case sf::Keyboard::Key::Left: io.AddKeyEvent(ImGuiKey_LeftArrow, true); break;
+                case sf::Keyboard::Key::Right: io.AddKeyEvent(ImGuiKey_RightArrow, true); break;
+                case sf::Keyboard::Key::Up: io.AddKeyEvent(ImGuiKey_UpArrow, true); break;
+                case sf::Keyboard::Key::Down: io.AddKeyEvent(ImGuiKey_DownArrow, true); break;
+                case sf::Keyboard::Key::Enter: io.AddKeyEvent(ImGuiKey_Enter, true); break;
+                case sf::Keyboard::Key::Escape: io.AddKeyEvent(ImGuiKey_Escape, true); break;
+                case sf::Keyboard::Key::A: 
+                    io.AddKeyEvent(ImGuiKey_A, true);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_A, true); 
+                    break; // Ctrl+A: Select All
+                case sf::Keyboard::Key::C: 
+                    io.AddKeyEvent(ImGuiKey_C, true);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_C, true); 
+                    break; // Ctrl+C: Copy
+                case sf::Keyboard::Key::V: 
+                    io.AddKeyEvent(ImGuiKey_V, true);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_V, true); 
+                    break; // Ctrl+V: Paste
+                case sf::Keyboard::Key::X: 
+                    io.AddKeyEvent(ImGuiKey_X, true);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_X, true); 
+                    break; // Ctrl+X: Cut
+                case sf::Keyboard::Key::Y: 
+                    io.AddKeyEvent(ImGuiKey_Y, true);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_Y, true); 
+                    break; // Ctrl+Y: Redo
+                case sf::Keyboard::Key::Z: 
+                    io.AddKeyEvent(ImGuiKey_Z, true);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_Z, true); 
+                    break; // Ctrl+Z: Undo
+                default: break;
+            }
         }
     }
     else if (event.is<sf::Event::KeyReleased>()) {
@@ -92,6 +136,44 @@ void ProcessEvent(const sf::Event& event) {
             io.KeyShift = keyReleased->shift;
             io.KeyAlt = keyReleased->alt;
             io.KeySuper = keyReleased->system;
+            
+            // Manually map keys for key releases
+            switch (keyReleased->code) {
+                case sf::Keyboard::Key::Backspace: io.AddKeyEvent(ImGuiKey_Backspace, false); break;
+                case sf::Keyboard::Key::Delete: io.AddKeyEvent(ImGuiKey_Delete, false); break;
+                case sf::Keyboard::Key::Tab: io.AddKeyEvent(ImGuiKey_Tab, false); break;
+                case sf::Keyboard::Key::Left: io.AddKeyEvent(ImGuiKey_LeftArrow, false); break;
+                case sf::Keyboard::Key::Right: io.AddKeyEvent(ImGuiKey_RightArrow, false); break;
+                case sf::Keyboard::Key::Up: io.AddKeyEvent(ImGuiKey_UpArrow, false); break;
+                case sf::Keyboard::Key::Down: io.AddKeyEvent(ImGuiKey_DownArrow, false); break;
+                case sf::Keyboard::Key::Enter: io.AddKeyEvent(ImGuiKey_Enter, false); break;
+                case sf::Keyboard::Key::Escape: io.AddKeyEvent(ImGuiKey_Escape, false); break;
+                case sf::Keyboard::Key::A: 
+                    io.AddKeyEvent(ImGuiKey_A, false);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_A, false); 
+                    break;
+                case sf::Keyboard::Key::C: 
+                    io.AddKeyEvent(ImGuiKey_C, false);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_C, false); 
+                    break;
+                case sf::Keyboard::Key::V: 
+                    io.AddKeyEvent(ImGuiKey_V, false);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_V, false); 
+                    break;
+                case sf::Keyboard::Key::X: 
+                    io.AddKeyEvent(ImGuiKey_X, false);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_X, false); 
+                    break;
+                case sf::Keyboard::Key::Y: 
+                    io.AddKeyEvent(ImGuiKey_Y, false);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_Y, false); 
+                    break;
+                case sf::Keyboard::Key::Z: 
+                    io.AddKeyEvent(ImGuiKey_Z, false);
+                    if (io.KeyCtrl) io.AddKeyEvent(ImGuiKey_Z, false); 
+                    break;
+                default: break;
+            }
         }
     }
     else if (event.is<sf::Event::TextEntered>()) {
@@ -130,6 +212,7 @@ void Update(sf::RenderWindow& window, sf::Time dt) {
     // Update mouse wheel
     io.MouseWheel = s_mouseWheel;
     s_mouseWheel = 0.0f;
+    // Note: io.MouseWheelH is already set in the ProcessEvent function
     
     // Setup low-level inputs
     ImGui_ImplOpenGL3_NewFrame();

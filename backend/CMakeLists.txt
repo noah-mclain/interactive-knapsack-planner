@@ -1,7 +1,17 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Add knapsack library
-file(GLOB KNAPSACK_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB KNAPSACK_SOURCES 
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/brute_force_knapsack.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/dp_knapsack.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/greedy_knapsack.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/huffmantree.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack_solver.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/node.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_sfml_bridge.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/branch_bound_knapsack.cpp"
+)
+
 add_library(knapsack ${KNAPSACK_SOURCES})
 
 # Set C++ standard
@@ -20,18 +30,22 @@ endif()
 target_include_directories(knapsack PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external/imgui>
 )
 
 # Create main executable
 add_executable(knapsack_main
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui_app.cpp
 )
 
 # Print the GLSL version being used
 message(STATUS "Using GLSL version: ${GLSL_VERSION}")
 
 # Link the executable with the knapsack library
-target_link_libraries(knapsack_main PRIVATE knapsack)
+target_link_libraries(knapsack_main PRIVATE knapsack imgui)
 
 # Platform-specific library linking
 if(APPLE)

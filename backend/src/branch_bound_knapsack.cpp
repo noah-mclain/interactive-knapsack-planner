@@ -7,6 +7,8 @@ BranchBoundKnapsack::BranchBoundKnapsack() {
     capacity = 0;
     maxProfit = 0;
     item_count = 0;
+    executionTime = std::chrono::nanoseconds(0);
+    memoryUsage = 0;
 }
 
 void BranchBoundKnapsack::setCapacity(int c) {
@@ -15,6 +17,13 @@ void BranchBoundKnapsack::setCapacity(int c) {
 
 void BranchBoundKnapsack::addItem(int weight, int value) {
     items.push_back({weight, value, item_count++, (double)value / weight});
+}
+
+void BranchBoundKnapsack::clearItems() {
+    items.clear();
+    item_count = 0;
+    selected_items.clear();
+    maxProfit = 0;
 }
 
 double BranchBoundKnapsack::bound(const BBNode& node) {
@@ -33,6 +42,10 @@ double BranchBoundKnapsack::bound(const BBNode& node) {
 }
 
 std::tuple<std::vector<BBItem>, std::chrono::nanoseconds, size_t> BranchBoundKnapsack::solve() {
+    // Track initial memory usage
+    size_t initialMemory = items.capacity() * sizeof(BBItem);
+    
+    // Start timing
     auto start = std::chrono::high_resolution_clock::now();
 
     std::sort(items.begin(), items.end(), [](const BBItem& a, const BBItem& b) {
@@ -50,6 +63,11 @@ std::tuple<std::vector<BBItem>, std::chrono::nanoseconds, size_t> BranchBoundKna
         BBNode node = pq.top(); pq.pop();
         if (node.bound <= maxProfit) continue;
 
+        // Skip if we're at the last item
+        if (node.level == item_count - 1)
+            continue;
+
+        // Include current item
         BBNode next;
         next.level = node.level + 1;
         next.weight = node.weight + items[next.level].weight;
@@ -81,12 +99,34 @@ std::tuple<std::vector<BBItem>, std::chrono::nanoseconds, size_t> BranchBoundKna
         selected.push_back(items[id]);
     }
 
+    // Stop timing and calculate memory usage
     auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::nanoseconds execTime = end - start;
-    size_t memory = sizeof(BBItem) * items.size() + sizeof(BBNode) * pq.size();
-    return {selected, execTime, memory};
+    executionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+    memoryUsage = initialMemory + (pq.size() * sizeof(BBNode)) + (selected.capacity() * sizeof(BBItem));
+    
+    return {selected, executionTime, memoryUsage};
 }
 
-int BranchBoundKnapsack::getMaxProfit() {
+int BranchBoundKnapsack::getMaxProfit() const {
     return maxProfit;
+}
+
+std::chrono::nanoseconds BranchBoundKnapsack::getExecutionTime() const {
+    return executionTime;
+}
+
+size_t BranchBoundKnapsack::getMemoryUsage() const {
+    return memoryUsage;
+}
+
+std::string BranchBoundKnapsack::getTimeComplexity() const {
+    return "O(2^n) - worst case, but often performs much better in practice";
+}
+
+std::string BranchBoundKnapsack::getSpaceComplexity() const {
+    return "O(2^n) - due to priority queue storage, but often much less in practice";
+}
+
+std::vector<int> BranchBoundKnapsack::getSelectedItems() const {
+    return selected_items;
 }

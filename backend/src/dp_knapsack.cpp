@@ -10,6 +10,7 @@ double_knapsack::double_knapsack(int n, vector<int>& weights, vector<int>& value
     this->capacity = capacity;
     this->item_count = n;
     max_profit = 0;
+    execution_time = std::chrono::nanoseconds(0);
 }
 
 void double_knapsack::solve() {
@@ -17,9 +18,9 @@ void double_knapsack::solve() {
     knapsack();
     backtrack();
     auto endTime = chrono::high_resolution_clock::now();
-    double executionTime = chrono::duration_cast<chrono::nanoseconds>(endTime - startTime).count();
+    execution_time = chrono::duration_cast<chrono::nanoseconds>(endTime - startTime);
     double spaceComplexity = get_space_complexity();
-    cout << "Execution Time: " << (executionTime / 1000000.0) << " ms" << endl;
+    cout << "Execution Time: " << get_execution_time_ms() << " ms" << endl;
     cout << "Space Complexity: " << spaceComplexity << " bytes" << endl;
     cout << "Max Profit: " << max_profit << endl;
     cout << "Selected items: ";

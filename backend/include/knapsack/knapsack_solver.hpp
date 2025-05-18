@@ -13,7 +13,7 @@ class KnapsackSolver {
         vector<int> values;
         int capacity;
         int item_count;
-        bool algorithms[3]= {false, false, false}; // 0: Greedy, 1: Brute Force, 2: Dynamic Programming
+        bool algorithms[4]= {false, false, false, false}; // 0: Greedy, 1: Brute Force, 2: Dynamic Programming
         double execution_time;
         double space_complexity;
 

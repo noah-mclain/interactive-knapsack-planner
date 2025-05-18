@@ -1,4 +1,5 @@
 #include "../include/knapsack/knapsack_solver.hpp"
+#include "../include/knapsack/branchbound.hpp"
 #include <iostream>
 #include <chrono>
 
@@ -7,7 +8,7 @@ using namespace knapsack;
 
 
 
-KnapsackSolver::KnapsackSolver(int n, vector<int>& weights, vector<int>& values, int capacity, bool algorithms[3]) {
+KnapsackSolver::KnapsackSolver(int n, vector<int>& weights, vector<int>& values, int capacity, bool algorithms[4]) {
     this->weights = weights;
     this->values = values;
     this->capacity = capacity;
@@ -16,6 +17,7 @@ KnapsackSolver::KnapsackSolver(int n, vector<int>& weights, vector<int>& values,
     this->algorithms[0] = algorithms[0]; // Greedy
     this->algorithms[1] = algorithms[1]; // Brute Force
     this->algorithms[2] = algorithms[2]; // Dynamic Programming
+    this->algorithms[3] = algorithms[3]; // Branch and Bound
 }
 
 void KnapsackSolver::solve() {
@@ -71,4 +73,25 @@ void KnapsackSolver::solve() {
         double_knapsack dp = double_knapsack(item_count, weights, values, capacity);
         dp.solve();
     }
+    if (algorithms[3]) {
+        cout << "Branch and Bound Knapsack Algorithm" << endl;
+        cout << "===================================" << endl;
+        BranchBoundKnapsack bb;
+        bb.setCapacity(capacity);
+        for (int i = 0; i < item_count; i++) {
+            bb.addItem(weights[i], values[i]);
+        }
+
+        auto [selected, execTime, memUsage] = bb.solve();
+        double executionTime = execTime.count() / 1000000.0;
+        cout << "Execution Time: " << executionTime << " ms" << endl;
+        cout << "Memory Usage: " << memUsage << " bytes" << endl;
+        cout << "Max Profit: " << bb.getMaxProfit() << endl;
+        cout << "Selected items: ";
+        for (const auto& item : selected) {
+            cout << item.id << " ";
+        }
+        cout << endl;
+    }
 }
+

@@ -458,42 +458,24 @@ void HuffmanGUI::render()
                 }
                 
                 // Create a child window for the tree visualization with scrolling
-                float treeHeight = 650.0f; // Increased height for the tree view
+                float treeHeight = 650.0f;
                 
-                // Use a different style for decoding mode
-                if (m_huffmanAnimation.decodingMode) {
-                    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.14f, 0.17f, 0.94f)); // Darker background
-                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f); // More rounded corners
-                }
+                // Control panel area
+                ImGui::BeginChild("ControlPanel", ImVec2(0, 40), false);
                 
-                // Store the current cursor position - this marks the top-left of our box
-                ImVec2 boxStart = ImGui::GetCursorScreenPos();
+                // Use more muted colors for buttons
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.4f, 0.3f, 0.7f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.5f, 0.35f, 0.8f));
                 
-                // Begin the child window that forms our box outline
-                ImGui::BeginChild("TreeView", ImVec2(0, treeHeight), true, 
-                                ImGuiWindowFlags_HorizontalScrollbar);
-                
-                // Get the exact dimensions of our box container
-                ImVec2 boxPos = ImGui::GetCursorScreenPos();
-                ImVec2 contentSize = ImGui::GetContentRegionAvail();
-                float contentWidth = contentSize.x;
-                float contentHeight = contentSize.y;
-                
-                // Store box bounds for debugging
-                ImVec2 boxMin = boxPos;
-                ImVec2 boxMax = ImVec2(boxPos.x + contentWidth, boxPos.y + contentHeight);
-                
-                // Add zoom and pan controls for better tree navigation
+                // Zoom/pan controls
                 static float zoomLevel = 1.0f;
                 static ImVec2 panOffset(0.0f, 0.0f);
                 
-                // Set the starting position for the tree root relative to the box
-                float startX = contentWidth / 2.0f + panOffset.x;  // Center horizontally + pan
-                float startY = 80.0f + panOffset.y;  // Position down from the top + pan
-                
-                ImGui::SetCursorPos(ImVec2(10, 10));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.4f, 0.6f, 0.5f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.5f, 0.7f, 0.7f));
+                // Variables for tracking scroll position
+                static bool initialScrollSet = false;
+                static float lastCanvasWidth = 0;
+                static float lastCanvasHeight = 0;
+                static int lastTotalNodes = 0;
                 
                 if (ImGui::Button("Zoom In")) {
                     zoomLevel *= 1.2f;
@@ -506,30 +488,139 @@ void HuffmanGUI::render()
                 if (ImGui::Button("Reset View")) {
                     zoomLevel = 1.0f;
                     panOffset = ImVec2(0.0f, 0.0f);
+                    
+                    // Reset initial scroll state to force re-centering
+                    initialScrollSet = false;
                 }
                 
-                ImGui::PopStyleColor(2);
+                ImGui::SameLine();
+                ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "| Ctrl+Scroll: Zoom, Shift+Scroll: Horizontal, Scroll: Vertical");
                 
-                // Create a specific rectangle for the tree visualization area
-                ImVec2 treeAreaMin = ImVec2(boxMin.x + 10, boxMin.y + 50); // Add some padding from the controls
-                ImVec2 treeAreaMax = ImVec2(boxMax.x - 10, boxMax.y - 10);
-                ImVec2 treeAreaSize = ImVec2(treeAreaMax.x - treeAreaMin.x, treeAreaMax.y - treeAreaMin.y);
+                ImGui::PopStyleColor(2);
+                ImGui::EndChild();
+                
+                // Define a clear visual border for the tree area
+                ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(80, 180, 100, 200)); // Softer green border
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 2.0f);
+                
+                // Background color for the tree area - softer dark background
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(28, 30, 36, 255));
+                
+                // Use a different style for decoding mode
+                if (m_huffmanAnimation.decodingMode) {
+                    // Use a slightly bluer background for decoding mode
+                    ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(26, 28, 38, 255));
+                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+                }
+                
+                // This is the scrollable tree area - with both scrollbars enabled
+                ImGui::BeginChild("TreeArea", ImVec2(0, treeHeight - 40), true, 
+                               ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+                
+                // Get the exact dimensions of our tree container
+                ImVec2 boxPos = ImGui::GetCursorScreenPos();
+                ImVec2 contentSize = ImGui::GetContentRegionAvail();
+                float contentWidth = contentSize.x;
+                float contentHeight = contentSize.y;
+                
+                // Store box bounds
+                ImVec2 boxMin = boxPos;
+                ImVec2 boxMax = ImVec2(boxPos.x + contentWidth, boxPos.y + contentHeight);
                 
                 // Calculate if mouse is over the tree area
                 ImVec2 mousePos = ImGui::GetIO().MousePos;
-                bool isMouseOverTreeArea = mousePos.x >= treeAreaMin.x && mousePos.x <= treeAreaMax.x &&
-                                          mousePos.y >= treeAreaMin.y && mousePos.y <= treeAreaMax.y;
+                bool isMouseOverTreeArea = mousePos.x >= boxMin.x && mousePos.x <= boxMax.x &&
+                                          mousePos.y >= boxMin.y && mousePos.y <= boxMax.y;
                 
-                // Handle mouse wheel for zooming and panning ONLY when mouse is over the tree area
+                // Count total number of nodes to better estimate required space
+                int totalNodes = 0;
+                int maxDepth = 0;
+                if (m_huffmanTree && m_huffmanTree->getRoot()) {
+                    countTotalNodes(m_huffmanTree->getRoot(), 0, totalNodes, maxDepth);
+                }
+                
+                // Count nodes in left and right subtrees of the root to determine tree balance
+                int leftSubtreeNodes = 0;
+                int rightSubtreeNodes = 0;
+                if (m_huffmanTree && m_huffmanTree->getRoot()) {
+                    if (m_huffmanTree->getRoot()->getLeft()) {
+                        countSubtreeNodes(m_huffmanTree->getRoot()->getLeft(), leftSubtreeNodes);
+                    }
+                    if (m_huffmanTree->getRoot()->getRight()) {
+                        countSubtreeNodes(m_huffmanTree->getRoot()->getRight(), rightSubtreeNodes);
+                    }
+                }
+                
+                // Calculate tree size to ensure proper scrolling
+                float estimatedTreeWidth = std::pow(2, maxDepth) * 200.0f * zoomLevel;
+                float estimatedTreeHeight = (maxDepth + 1) * 240.0f * zoomLevel;
+                
+                // Create a canvas large enough to contain the entire tree
+                // Add extra padding on all sides for better scrolling
+                ImVec2 canvasSize(std::max(contentWidth * 2.0f, estimatedTreeWidth + 800.0f),
+                                 std::max(contentHeight * 2.0f, estimatedTreeHeight + 300.0f));
+                
+                // Calculate initial scroll position to center horizontally, but position at top of tree
+                float initialScrollX = (canvasSize.x - contentWidth) * 0.5f;
+                float initialScrollY = 50.0f; // Position near the top with small offset
+                
+                // Set the content size for proper scrolling - crucial for scroll to work!
+                ImGui::SetCursorPos(ImVec2(0, 0));
+                ImGui::InvisibleButton("canvas", canvasSize, ImGuiButtonFlags_None);
+                
+                // Set scroll positions to center the canvas initially when tree is first shown
+                if (!initialScrollSet || 
+                    std::abs(lastCanvasWidth - canvasSize.x) > 50 || 
+                    std::abs(lastCanvasHeight - canvasSize.y) > 50 ||
+                    lastTotalNodes != totalNodes) {
+                    
+                    ImGui::SetScrollX(initialScrollX);
+                    ImGui::SetScrollY(initialScrollY);
+                    initialScrollSet = true;
+                    lastCanvasWidth = canvasSize.x;
+                    lastCanvasHeight = canvasSize.y;
+                    lastTotalNodes = totalNodes;
+                }
+                
+                // Calculate the center point of the virtual canvas
+                // Center the tree horizontally but position root near the top
+                ImVec2 canvasCenter(
+                    boxMin.x + canvasSize.x * 0.5f,
+                    boxMin.y + 120.0f  // Position near the top with enough room for the tree root
+                );
+                
+                // Apply the pan offset to the center point
+                canvasCenter.x += panOffset.x;
+                canvasCenter.y += panOffset.y;
+                
+                // Add a small helper note about scrolling
+                ImGui::SetCursorPos(ImVec2(10, 10));
+                ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 0.7f), "Scroll with mouse wheel, drag with middle mouse button");
+                
+                // Handle mouse wheel for zooming and panning
                 if (ImGui::IsWindowFocused() && isMouseOverTreeArea) {
-                    // Vertical mouse wheel controls zoom
                     float wheel = ImGui::GetIO().MouseWheel;
                     if (wheel != 0) {
-                        zoomLevel *= (1.0f + wheel * 0.1f);
-                        zoomLevel = std::max(0.1f, std::min(5.0f, zoomLevel));
+                        if (ImGui::GetIO().KeyShift) {
+                            // Horizontal scrolling when Shift is held
+                            panOffset.x += wheel * 30.0f;
+                        } else if (ImGui::GetIO().KeyCtrl) {
+                            // Zoom when Ctrl is held
+                            float prevZoom = zoomLevel;
+                            zoomLevel *= (1.0f + wheel * 0.1f);
+                            zoomLevel = std::max(0.1f, std::min(5.0f, zoomLevel));
+                            
+                            // Adjust pan offset to zoom toward mouse position
+                            float zoomRatio = zoomLevel / prevZoom;
+                            ImVec2 mouseRelPos = ImVec2(mousePos.x - canvasCenter.x, mousePos.y - canvasCenter.y);
+                            panOffset.x -= mouseRelPos.x * (zoomRatio - 1.0f);
+                            panOffset.y -= mouseRelPos.y * (zoomRatio - 1.0f);
+                        } else {
+                            // Vertical scrolling by default
+                            panOffset.y += wheel * 30.0f;
+                        }
                     }
                     
-                    // Handle panning with middle mouse button
                     if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
                         ImVec2 delta = ImGui::GetIO().MouseDelta;
                         panOffset.x += delta.x;
@@ -537,107 +628,35 @@ void HuffmanGUI::render()
                     }
                 }
                 
-                // Adjust offsets based on mode and available space
+                // Adjust offsets based on tree depth and available space
                 float xOffset;
                 float yOffset;
                 
-                // Count total number of nodes to better estimate required space
-                int totalNodes = 0;
-                int maxDepth = 0;
-                if (m_huffmanTree->getRoot()) {
-                    countTotalNodes(m_huffmanTree->getRoot(), 0, totalNodes, maxDepth);
+                // Calculate adaptive spacing based on tree depth
+                float baseXOffset = 250.0f - (maxDepth * 15.0f);
+                baseXOffset = std::max(120.0f, baseXOffset);
+                
+                float baseYOffset = 120.0f + (maxDepth * 5.0f);
+                baseYOffset = std::min(180.0f, baseYOffset);
+                
+                xOffset = baseXOffset * zoomLevel;
+                yOffset = baseYOffset * zoomLevel;
+                
+                // Render the tree at the canvas center
+                if (m_huffmanTree && m_huffmanTree->getRoot()) {
+                    renderHuffmanTree(m_huffmanTree->getRoot(), canvasCenter.x, canvasCenter.y, xOffset, yOffset, "", true);
                 }
                 
-                // Calculate adaptive spacing based on available width and tree size
-                // Use the content width divided by (2^(max depth/2)) to ensure nodes at deepest level don't overflow
-                float maxWidthNeeded = std::pow(2, std::min(maxDepth, 5)) * 90.0f; // Estimate width needed (90px per node)
-                float scaleFactor = std::min(1.3f, contentWidth / maxWidthNeeded);
+                ImGui::EndChild(); // End of TreeArea
                 
-                // Calculate tree size to ensure proper scrolling
-                float estimatedTreeWidth = std::pow(2, maxDepth) * 150.0f * zoomLevel;
-                float estimatedTreeHeight = (maxDepth + 1) * 180.0f * zoomLevel;
-                
-                // Ensure we have enough content area for scrolling when zoomed in
-                ImGui::SetCursorPos(ImVec2(0, 0));
-                ImGui::Dummy(ImVec2(std::max(contentWidth, estimatedTreeWidth), std::max(contentHeight, estimatedTreeHeight)));
-                
+                // Pop styles
                 if (m_huffmanAnimation.decodingMode) {
-                    // In decoding mode, adjust spacing based on available space
-                    xOffset = contentWidth / (maxDepth + 2) * scaleFactor * zoomLevel;
-                    yOffset = std::min(150.0f, contentHeight / (maxDepth + 1)) * zoomLevel;
-                } else {
-                    // More compact spacing for encoding mode
-                    xOffset = contentWidth / (maxDepth + 3) * scaleFactor * zoomLevel;
-                    yOffset = std::min(130.0f, contentHeight / (maxDepth + 2)) * zoomLevel;
+                    ImGui::PopStyleColor(); // ChildBg for decoding mode
+                    ImGui::PopStyleVar();   // ChildRounding
                 }
                 
-                // Render the tree with animation
-                if (m_huffmanTree->getRoot()) {
-                    // Now we have a box specifically for the tree
-                    ImVec2 treeRegion = ImGui::GetContentRegionAvail();
-                    float treeAreaX = treeRegion.x;
-                    float treeAreaY = treeRegion.y;
-                    
-                    // Draw a clear, visible rectangle to show the exact bounds of the tree area
-                    ImDrawList* drawList = ImGui::GetWindowDrawList();
-                    
-                    // Draw a more visible border for the tree visualization area
-                    float borderThickness = 2.0f;
-                    ImU32 borderColor = m_huffmanAnimation.decodingMode ? 
-                        IM_COL32(100, 130, 200, 200) : IM_COL32(100, 200, 130, 200);
-                    
-                    // Draw the border using four separate lines for better clarity
-                    drawList->AddRect(
-                        treeAreaMin, 
-                        treeAreaMax,
-                        borderColor,
-                        8.0f,  // Rounded corners
-                        ImDrawFlags_RoundCornersAll,
-                        borderThickness
-                    );
-                    
-                    // Add a semi-transparent fill
-                    drawList->AddRectFilled(
-                        treeAreaMin,
-                        treeAreaMax,
-                        m_huffmanAnimation.decodingMode ? 
-                            IM_COL32(30, 35, 45, 255) : IM_COL32(30, 35, 45, 255), // Darker blue-gray background
-                        8.0f  // Rounded corners
-                    );
-                        
-                    // Set proper rendering coordinates - center the tree in the visible area
-                    float renderX = treeAreaSize.x / 2.0f + panOffset.x; 
-                    float renderY = 80.0f + panOffset.y;
-                    
-                    // Always highlight the tree center point for reference
-                    drawList->AddCircle(
-                        ImVec2(treeAreaMin.x + renderX, treeAreaMin.y + renderY - 50), 
-                        4.0f, 
-                        m_huffmanAnimation.decodingMode ? 
-                            IM_COL32(100, 150, 250, 150) : IM_COL32(150, 250, 150, 150), 
-                        8, 2.0f);
-                        
-                    // Add coordinates label for debugging - make it more visible
-                    char coordsLabel[32];
-                    snprintf(coordsLabel, sizeof(coordsLabel), "Tree Root: %.0f,%.0f", renderX, renderY);
-                    drawList->AddText(
-                        ImVec2(treeAreaMin.x + 10, treeAreaMin.y + 5),
-                        IM_COL32(180, 180, 180, 200),
-                        coordsLabel);
-                    
-                    // Render the tree strictly within this box
-                    if (m_huffmanTree->getRoot()) {
-                        renderHuffmanTree(m_huffmanTree->getRoot(), renderX, renderY, xOffset, yOffset, "", true);
-                    }
-                }
-                
-                ImGui::EndChild();
-                
-                // Pop style changes if we're in decoding mode
-                if (m_huffmanAnimation.decodingMode) {
-                    ImGui::PopStyleColor();
-                    ImGui::PopStyleVar();
-                }
+                ImGui::PopStyleColor(2); // ChildBg and Border
+                ImGui::PopStyleVar();    // BorderSize
                 
                 // Add animation controls
                 ImGui::Separator();
@@ -1114,13 +1133,12 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
     // Get current draw list for rendering
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     
-    // Adjust position to be relative to the tree box
-    ImVec2 nodePos(ImGui::GetWindowPos().x + x, ImGui::GetWindowPos().y + y);
+    // Adjust position to be relative to the window
+    ImVec2 nodePos(x, y);
     
     // For animating nodes in order of traversal
     bool isHighlighted = false;
     bool isInPath = false;
-    bool isDecoding = m_huffmanAnimation.decodingMode;
     
     if (animateTraversal && !m_huffmanAnimation.treeTraversalNodes.empty()) {
         // Check if this node is part of the current traversal stage
@@ -1136,45 +1154,43 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
         }
     }
     
-    // Calculate node colors and sizes
+    // Calculate node colors and sizes with less saturation
     ImU32 nodeColor;
-    ImU32 nodeBorderColor = IM_COL32(100, 100, 100, 255); // Consistent border color
-    float nodeSize = 40.0f;  // Increased base node size for better visibility
+    ImU32 nodeBorderColor = IM_COL32(70, 70, 70, 220); // Darker, less saturated border
+    float nodeSize = 38.0f;
     
     if (isHighlighted) {
-        // Bright highlight for the active node
-        nodeColor = IM_COL32(255, 200, 50, 255);
-        nodeSize = 45.0f; // Slightly larger for emphasis
+        // Softer highlight for the active node
+        nodeColor = IM_COL32(230, 190, 60, 230);
+        nodeSize = 42.0f; // Slightly larger for emphasis
     } else if (isInPath) {
-        // Previously traversed node
-        nodeColor = IM_COL32(120, 210, 140, 250);
+        // Previously traversed node - more muted
+        nodeColor = IM_COL32(110, 180, 120, 230);
     } else if (node->isLeaf()) {
-        // Leaf nodes - use consistent green for leaves with slight variations
+        // Leaf nodes - use less saturated green
         int freq = node->getFrequency();
-        float brightness = 0.6f + (freq % 5) * 0.08f; // Slight variation based on frequency
+        float brightness = 0.6f + (freq % 5) * 0.06f;
         
-        // Use a consistent light green for leaf nodes
+        // More muted, softer green for leaf nodes
         nodeColor = IM_COL32(
-            120 * brightness, 
-            210 * brightness, 
-            140 * brightness, 
-            250
+            90 * brightness, 
+            170 * brightness, 
+            110 * brightness, 
+            230
         );
         
-        // Character 'w' in yellow as in the example image
+        // Character 'w' in softer yellow
         if (node->getCharacter() == 'w') {
-            nodeColor = IM_COL32(255, 200, 50, 255); // Yellow
+            nodeColor = IM_COL32(220, 190, 60, 230);
         }
     } else {
-        // Internal nodes - use the same consistent green
-        nodeColor = IM_COL32(120, 210, 140, 250);
+        // Internal nodes - softer green
+        nodeColor = IM_COL32(100, 170, 130, 230);
     }
     
-    // Draw the node with a white border for better clarity
-    // Grey border
-    drawList->AddCircleFilled(nodePos, nodeSize + 2.0f, nodeBorderColor, 16);
-    // Main node color
-    drawList->AddCircleFilled(nodePos, nodeSize, nodeColor, 16);
+    // Draw the node with a stronger border for better clarity
+    drawList->AddCircleFilled(nodePos, nodeSize + 2.5f, nodeBorderColor, 24);
+    drawList->AddCircleFilled(nodePos, nodeSize, nodeColor, 24);
     
     // Draw node content
     char label[64];
@@ -1200,8 +1216,10 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
         nodePos.y - textSize.y * 0.5f
     );
     
-    // Draw node text
-    drawList->AddText(textPos, IM_COL32(0, 0, 0, 255), label);
+    // Draw text shadow for better readability
+    drawList->AddText(ImVec2(textPos.x + 1, textPos.y + 1), IM_COL32(0, 0, 0, 150), label);
+    // Draw node text with clearer color
+    drawList->AddText(textPos, IM_COL32(0, 0, 0, 230), label);
     
     // Count the number of nodes in each subtree for better balancing
     int leftCount = 0, rightCount = 0;
@@ -1210,87 +1228,139 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
     
     // Recursively draw child nodes with improved spacing
     if (node->getLeft() || node->getRight()) {
-        // Increase vertical spacing between levels for clarity
-        float childY = y + yOffset * 1.2f;
+        // Calculate depth-based spacing adjustments
+        float depthFactor = std::min(1.0f, 2.0f / (code.length() + 1));
         
-        // Calculate better horizontal separation
-        float totalNodes = leftCount + rightCount;
-        float separationFactor = 1.5f + (code.length() * 0.3f); // Increase separation with depth
-        float baseOffset = 200.0f / (code.length() + 2.0f); // Base horizontal spacing
+        // Increase vertical spacing for deeper levels to prevent overlap
+        float levelYOffset = yOffset * (1.0f + 0.15f * code.length());
+        float childY = y + levelYOffset;
+        
+        // Calculate better horizontal separation based on tree depth and subtree size
+        float horizontalScaleFactor = 1.8f - (0.15f * code.length());
+        horizontalScaleFactor = std::max(0.6f, horizontalScaleFactor);
+        
+        // Adjust horizontal spacing based on the number of nodes in subtrees
+        float leftRatio = (leftCount > 0) ? leftCount : 0.5f;
+        float rightRatio = (rightCount > 0) ? rightCount : 0.5f;
+        float totalRatio = leftRatio + rightRatio;
         
         // Calculate appropriate offsets for left and right children
-        float leftX = x - baseOffset * separationFactor * (leftCount > 0 ? 1.0f : 0.5f);
-        float rightX = x + baseOffset * separationFactor * (rightCount > 0 ? 1.0f : 0.5f);
+        float spacingFactor = std::max(35.0f, xOffset * horizontalScaleFactor * 
+                                     depthFactor * (1.0f + std::log(totalRatio) * 0.25f));
         
-        // Adjust horizontal spacing based on tree depth and balance
-        if (code.length() < 2) {
-            // For top levels, use wider spacing
-            leftX = x - baseOffset * 2.5f;
-            rightX = x + baseOffset * 2.5f;
+        // Adjust spacing to provide more room for the left subtree
+        float leftScalingFactor = 1.0f;
+        if (leftCount > rightCount) {
+            // Apply a stronger scaling factor based on the ratio difference
+            float ratio = static_cast<float>(leftCount) / std::max(1, rightCount);
+            leftScalingFactor = 1.2f + std::min(0.8f, (ratio - 1) * 0.2f); // Up to 2.0x for very unbalanced trees
         }
         
-        // Draw edges to children with improved visibility
+        float leftX = x - spacingFactor * (leftRatio / totalRatio) * leftScalingFactor;
+        float rightX = x + spacingFactor * (rightRatio / totalRatio);
+        
+        // Ensure minimum separation between adjacent nodes
+        float minNodeSeparation = nodeSize * 4.0f; // Increased minimum separation
+        if (rightX - leftX < minNodeSeparation) {
+            float adjustNeeded = (minNodeSeparation - (rightX - leftX)) / 2.0f;
+            leftX -= adjustNeeded;
+            rightX += adjustNeeded;
+        }
+        
+        // Draw edges to children with improved visibility - connect from bottom of parent to top of child
         if (node->getLeft()) {
-            ImVec2 leftPos(ImGui::GetWindowPos().x + leftX, ImGui::GetWindowPos().y + childY);
+            ImVec2 leftChildPos(leftX, childY);
             
-            // Grey edges for consistency with the reference image
-            ImU32 edgeColor = IM_COL32(140, 140, 140, 220);
-            float edgeThickness = 2.5f;
-            
-            // Draw edge
-            drawList->AddLine(nodePos, leftPos, edgeColor, edgeThickness);
-            
-            // Calculate midpoint for edge label
-            ImVec2 midPoint(
-                (nodePos.x + leftPos.x) * 0.5f,
-                (nodePos.y + leftPos.y) * 0.5f
+            // Calculate the bottom center point of the parent node
+            ImVec2 parentBottomCenter(
+                nodePos.x,
+                nodePos.y + nodeSize + 2.5f
             );
             
-            // Draw label circle (white with grey border)
-            drawList->AddCircleFilled(midPoint, 15.0f, IM_COL32(220, 220, 220, 255), 12);
-            drawList->AddCircle(midPoint, 15.0f, IM_COL32(120, 120, 120, 200), 12, 1.5f);
+            // Calculate the top center point of the child node
+            ImVec2 childTopCenter(
+                leftChildPos.x,
+                leftChildPos.y - nodeSize - 2.5f
+            );
+            
+            // Edge color: softer grey for less visual intensity
+            ImU32 edgeColor = IM_COL32(130, 130, 130, 180);
+            float edgeThickness = 2.2f;
+            
+            // Draw edge from bottom of parent to top of child
+            drawList->AddLine(parentBottomCenter, childTopCenter, edgeColor, edgeThickness);
+            
+            // Calculate midpoint for edge label - closer to child
+            ImVec2 midPoint(
+                parentBottomCenter.x * 0.4f + childTopCenter.x * 0.6f,
+                parentBottomCenter.y * 0.4f + childTopCenter.y * 0.6f
+            );
+            
+            // Draw label circle with improved visibility but softer colors
+            float labelSize = 14.0f;
+            // Add a soft dark outline for the label
+            drawList->AddCircleFilled(midPoint, labelSize + 1.0f, IM_COL32(40, 40, 40, 150), 16);
+            // Draw the white background - slightly off-white for less harshness
+            drawList->AddCircleFilled(midPoint, labelSize, IM_COL32(240, 240, 240, 230), 16);
             
             // Draw the '0' label
-            ImVec2 labelSize = ImGui::CalcTextSize("0");
+            ImVec2 textSize = ImGui::CalcTextSize("0");
             ImVec2 labelPos(
-                midPoint.x - labelSize.x * 0.5f,
-                midPoint.y - labelSize.y * 0.5f
+                midPoint.x - textSize.x * 0.5f,
+                midPoint.y - textSize.y * 0.5f
             );
             
-            drawList->AddText(labelPos, IM_COL32(0, 0, 0, 255), "0");
+            // Draw text with a softer black
+            drawList->AddText(labelPos, IM_COL32(30, 30, 30, 220), "0");
             
             // Recursively draw left subtree
             renderHuffmanTree(node->getLeft(), leftX, childY, xOffset, yOffset, code + "0", animateTraversal);
         }
         
         if (node->getRight()) {
-            ImVec2 rightPos(ImGui::GetWindowPos().x + rightX, ImGui::GetWindowPos().y + childY);
+            ImVec2 rightChildPos(rightX, childY);
             
-            // Grey edges for consistency
-            ImU32 edgeColor = IM_COL32(140, 140, 140, 220);
-            float edgeThickness = 2.5f;
-            
-            // Draw edge
-            drawList->AddLine(nodePos, rightPos, edgeColor, edgeThickness);
-            
-            // Calculate midpoint for edge label
-            ImVec2 midPoint(
-                (nodePos.x + rightPos.x) * 0.5f,
-                (nodePos.y + rightPos.y) * 0.5f
+            // Calculate the bottom center point of the parent node
+            ImVec2 parentBottomCenter(
+                nodePos.x,
+                nodePos.y + nodeSize + 2.5f
             );
             
-            // Draw label circle (white with grey border)
-            drawList->AddCircleFilled(midPoint, 15.0f, IM_COL32(220, 220, 220, 255), 12);
-            drawList->AddCircle(midPoint, 15.0f, IM_COL32(120, 120, 120, 200), 12, 1.5f);
+            // Calculate the top center point of the child node
+            ImVec2 childTopCenter(
+                rightChildPos.x,
+                rightChildPos.y - nodeSize - 2.5f
+            );
+            
+            // Softer grey edges
+            ImU32 edgeColor = IM_COL32(130, 130, 130, 180);
+            float edgeThickness = 2.2f;
+            
+            // Draw edge from bottom of parent to top of child
+            drawList->AddLine(parentBottomCenter, childTopCenter, edgeColor, edgeThickness);
+            
+            // Calculate midpoint for edge label - closer to child
+            ImVec2 midPoint(
+                parentBottomCenter.x * 0.4f + childTopCenter.x * 0.6f,
+                parentBottomCenter.y * 0.4f + childTopCenter.y * 0.6f
+            );
+            
+            // Draw label circle with improved visibility but softer colors
+            float labelSize = 14.0f;
+            // Add a soft dark outline for the label
+            drawList->AddCircleFilled(midPoint, labelSize + 1.0f, IM_COL32(40, 40, 40, 150), 16);
+            // Draw the white background - slightly off-white for less harshness
+            drawList->AddCircleFilled(midPoint, labelSize, IM_COL32(240, 240, 240, 230), 16);
             
             // Draw the '1' label
-            ImVec2 labelSize = ImGui::CalcTextSize("1");
+            ImVec2 textSize = ImGui::CalcTextSize("1");
             ImVec2 labelPos(
-                midPoint.x - labelSize.x * 0.5f,
-                midPoint.y - labelSize.y * 0.5f
+                midPoint.x - textSize.x * 0.5f,
+                midPoint.y - textSize.y * 0.5f
             );
             
-            drawList->AddText(labelPos, IM_COL32(0, 0, 0, 255), "1");
+            // Draw text with a softer black
+            drawList->AddText(labelPos, IM_COL32(30, 30, 30, 220), "1");
             
             // Recursively draw right subtree
             renderHuffmanTree(node->getRight(), rightX, childY, xOffset, yOffset, code + "1", animateTraversal);

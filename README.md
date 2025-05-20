@@ -9,7 +9,7 @@ An interactive algorithm visualizer featuring the knapsack problem solver and Hu
   <img src="images/knapsack/knapsack_brute_force.png" width="400" alt="Knapsack Solver Brute Force Visualization"/>
 </p>
 <p align="center">
-  <video src="images/knapsack/knapsack_dp_trace.mov" width="400" controls alt="Knapsack Solver DP Table Visualization"></video>
+  <video src="images/knapsack/knapsack_dp_trace.mp4" width="400" controls alt="Knapsack Solver DP Table Visualization"></video>
   <img src="images/knapsack/knapsack_branch_bound.png" width="400" alt="Knapsack Solver Branch and Bound Visualization"/>
 </p>
 

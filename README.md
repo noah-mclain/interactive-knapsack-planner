@@ -268,9 +268,12 @@ The project uses CMake for cross-platform building:
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+## Developers
 
-[Your license information]
+This project was developed by:
+
+- **Omar Khaled** - [omariko63](https://github.com/omariko63)
+- **Nada Ayman** - [noah-mclain](https://github.com/noah-mclain)
 
 ## Acknowledgments
 

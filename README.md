@@ -7,10 +7,10 @@ An interactive algorithm visualizer featuring the knapsack problem solver and Hu
 <p align="center">
   <img src="images/knapsack/knapsack_greedy.png" width="400" alt="Knapsack Solver Greedy Results"/>
   <img src="images/knapsack/knapsack_brute_force.png" width="400" alt="Knapsack Solver Brute Force Visualization"/>
+  <img src="images/knapsack/knapsack_branch_bound.png" width="400" alt="Knapsack Solver Branch and Bound Visualization"/>
 </p>
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/27d81eca-f517-446f-bffd-42b0a79d0668" width="400" controls alt="Knapsack Solver DP Table Visualization"></video>
-  <img src="images/knapsack/knapsack_branch_bound.png" width="400" alt="Knapsack Solver Branch and Bound Visualization"/>
+  <video src="https://github.com/user-attachments/assets/27d81eca-f517-446f-bffd-42b0a79d0668" width="200" controls alt="Knapsack Solver DP Table Visualization"></video>
 </p>
 
 ## Huffman Encoding Visualizations

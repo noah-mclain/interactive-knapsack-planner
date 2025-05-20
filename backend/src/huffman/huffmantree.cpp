@@ -1,4 +1,4 @@
-#include "../include/huffman/huffmantree.hpp"
+#include "../../include/huffman/huffmantree.hpp"
 
 HuffmanTree::HuffmanTree() {
     this->text = "";

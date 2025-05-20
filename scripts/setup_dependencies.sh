@@ -71,7 +71,11 @@ if [ ! -d "external/imgui/.git" ]; then
 else
     print_info "ImGui repository already exists, updating..."
     cd external/imgui
-    git pull
+    # Make git pull non-fatal so build can continue even with network issues
+    git pull || { 
+        print_warning "Failed to update ImGui repository due to network issues. Continuing with existing version."
+        print_info "This will not affect the build as long as ImGui is already downloaded."
+    }
     cd ../..
 fi
 

@@ -40,3 +40,5 @@ build/CMakeCache.txt
 build/CMakeFiles/4.0.2/CMakeSystem.cmake
 build/CMakeFiles/CMakeConfigureLog.yaml
 /build/CMakeFiles
+.DS_Store
+

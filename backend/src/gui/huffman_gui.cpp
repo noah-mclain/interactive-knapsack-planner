@@ -1,4 +1,4 @@
-#include "gui/huffman_gui.hpp"
+#include "../../include/gui/huffman_gui.hpp"
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -14,11 +14,13 @@ HuffmanGUI::HuffmanGUI()
     , m_editFreqIndex(-1)
     , m_showHuffmanResults(false)
 {
-    // Initialize char buffers
+    // Initialize char buffers with explicit null termination
     m_inputText[0] = '\0';
     m_encodedText[0] = '\0';
-    m_resultEncodedText[0] = '\0';
-    m_resultDecodedText[0] = '\0';
+    
+    // Clear result buffers completely (use memset for safety)
+    std::memset(m_resultEncodedText, 0, sizeof(m_resultEncodedText));
+    std::memset(m_resultDecodedText, 0, sizeof(m_resultDecodedText));
 }
 
 HuffmanGUI::~HuffmanGUI()
@@ -163,7 +165,14 @@ void HuffmanGUI::render()
                 // Move focus to frequency field when enter is pressed
                 ImGui::SetKeyboardFocusHere(0);
             }
-            
+
+            // Show placeholder suggestions for character input if empty
+            if (m_newChar == 0 && ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+                ImGui::Text("Try a character like 'a', 'e', 't', etc.");
+                ImGui::EndTooltip();
+            }
+
             ImGui::SameLine();
             if (ImGui::InputInt("Frequency", &m_newFreq, 1, 5, 
                               ImGuiInputTextFlags_AllowTabInput |
@@ -176,17 +185,75 @@ void HuffmanGUI::render()
                     m_showHuffmanResults = false;
                 }
             }
+
+            // Show placeholder suggestions for frequency input if zero
+            if (m_newFreq == 0 && ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+                ImGui::Text("Common frequencies: 'e':12, 't':9, 'a':8...");
+                ImGui::EndTooltip();
+            }
+
             ImGui::PopItemWidth();
-            
+
             if (ImGui::Button("Add Character") && m_newChar != 0 && m_newFreq > 0) {
                 m_charFrequencies[m_newChar] = m_newFreq;
                 m_newChar = 0;
                 m_newFreq = 0;
                 m_showHuffmanResults = false;
             }
-            
+
             ImGui::SameLine();
-            
+
+            // Add commonly used character sets button
+            if (ImGui::Button("Add Example Set")) {
+                ImGui::OpenPopup("ExampleCharSetPopup");
+            }
+
+            if (ImGui::BeginPopup("ExampleCharSetPopup")) {
+                ImGui::Text("Choose a character set:");
+                ImGui::Separator();
+                
+                if (ImGui::Selectable("English Common Letters")) {
+                    // Clear existing frequencies first
+                    m_charFrequencies.clear();
+                    
+                    // Add common English letters with approximate frequencies
+                    m_charFrequencies['e'] = 12;
+                    m_charFrequencies['t'] = 9;
+                    m_charFrequencies['a'] = 8;
+                    m_charFrequencies['o'] = 8;
+                    m_charFrequencies['i'] = 7;
+                    m_charFrequencies['n'] = 7;
+                    m_charFrequencies['s'] = 6;
+                    m_charFrequencies['h'] = 6;
+                    m_charFrequencies['r'] = 6;
+                    m_charFrequencies['d'] = 4;
+                    m_charFrequencies['l'] = 4;
+                    m_charFrequencies['u'] = 3;
+                    
+                    m_showHuffmanResults = false;
+                    ImGui::CloseCurrentPopup();
+                }
+                
+                if (ImGui::Selectable("Simple Testing Set")) {
+                    // Clear existing frequencies first
+                    m_charFrequencies.clear();
+                    
+                    // Simple set for testing
+                    m_charFrequencies['a'] = 5;
+                    m_charFrequencies['b'] = 2;
+                    m_charFrequencies['c'] = 1;
+                    m_charFrequencies['d'] = 1;
+                    
+                    m_showHuffmanResults = false;
+                    ImGui::CloseCurrentPopup();
+                }
+                
+                ImGui::EndPopup();
+            }
+
+            ImGui::SameLine();
+
             if (ImGui::Button("Clear All")) {
                 ImGui::OpenPopup("ClearFreqConfirmPopup");
             }
@@ -440,10 +507,39 @@ void HuffmanGUI::render()
     // Display results section if available
     if (m_showHuffmanResults && m_huffmanTree) {
         ImGui::Separator();
-        ImGui::Text("Results:");
+        // Make this more visible with colors
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.3f, 1.0f), "Results:");
         
-        // Results Tabs
-        if (ImGui::BeginTabBar("HuffmanResultTabs")) {
+        // Force update results directly
+        if (m_huffmanTree) {
+            if (m_resultEncodedText[0] == '\0') {
+                std::string encodedText = m_huffmanTree->getEncodedText();
+                if (!encodedText.empty()) {
+                    std::strncpy(m_resultEncodedText, encodedText.c_str(), sizeof(m_resultEncodedText) - 1);
+                    m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+                } else if (m_encodedText[0] != '\0') {
+                    std::strncpy(m_resultEncodedText, m_encodedText, sizeof(m_resultEncodedText) - 1);
+                    m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+                }
+            }
+            
+            if (m_resultDecodedText[0] == '\0') {
+                std::string decodedText = m_huffmanTree->getDecodedText();
+                if (!decodedText.empty()) {
+                    std::strncpy(m_resultDecodedText, decodedText.c_str(), sizeof(m_resultDecodedText) - 1);
+                    m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+                } else if (m_inputText[0] != '\0') {
+                    std::strncpy(m_resultDecodedText, m_inputText, sizeof(m_resultDecodedText) - 1);
+                    m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+                }
+            }
+        }
+        
+        // Results Tabs - if no tab selected, select encoding/decoding by default
+        static int activeTab = 1;  // Default to encoding/decoding tab
+        ImGuiTabBarFlags tabFlags = ImGuiTabBarFlags_None;
+        
+        if (ImGui::BeginTabBar("HuffmanResultTabs", tabFlags)) {
             // Tree Visualization Tab
             if (ImGui::BeginTabItem("Tree Visualization")) {
                 ImGui::Text("Huffman Tree:");
@@ -608,6 +704,7 @@ void HuffmanGUI::render()
                             // Zoom when Ctrl is held
                             float prevZoom = zoomLevel;
                             zoomLevel *= (1.0f + wheel * 0.1f);
+                            // Constrain zoom to reasonable limits
                             zoomLevel = std::max(0.1f, std::min(5.0f, zoomLevel));
                             
                             // Adjust pan offset to zoom toward mouse position
@@ -628,19 +725,13 @@ void HuffmanGUI::render()
                     }
                 }
                 
-                // Adjust offsets based on tree depth and available space
-                float xOffset;
-                float yOffset;
+                // Calculate base offsets (independent of zoom)
+                float baseXOffset = 250.0f;
+                float baseYOffset = 150.0f;
                 
-                // Calculate adaptive spacing based on tree depth
-                float baseXOffset = 250.0f - (maxDepth * 15.0f);
-                baseXOffset = std::max(120.0f, baseXOffset);
-                
-                float baseYOffset = 120.0f + (maxDepth * 5.0f);
-                baseYOffset = std::min(180.0f, baseYOffset);
-                
-                xOffset = baseXOffset * zoomLevel;
-                yOffset = baseYOffset * zoomLevel;
+                // Scale offsets based on zoom for final rendering
+                float xOffset = baseXOffset * zoomLevel;
+                float yOffset = baseYOffset * zoomLevel;
                 
                 // Render the tree at the canvas center
                 if (m_huffmanTree && m_huffmanTree->getRoot()) {
@@ -667,30 +758,103 @@ void HuffmanGUI::render()
                 ImGui::EndTabItem();
             }
             
-            // Encoding/Decoding Results Tab
-            if (ImGui::BeginTabItem("Encoding/Decoding")) {
+            // Encoding/Decoding Results Tab - Force select this tab by default
+            if (ImGui::BeginTabItem("Encoding/Decoding", nullptr, activeTab == 1 ? ImGuiTabItemFlags_SetSelected : 0)) {
+                // Reset the active tab flag after first use
+                activeTab = 0;
                 // Display different content based on mode
                 if (m_huffmanInputMode == HuffmanInputMode::ENCODED) {
-                    // Decoding results
+                    // Decoding results - Force get data from tree first
+                    if (m_huffmanTree) {
+                        std::string encodedText = m_huffmanTree->getEncodedText();
+                        if (!encodedText.empty()) {
+                            std::strncpy(m_resultEncodedText, encodedText.c_str(), sizeof(m_resultEncodedText) - 1);
+                            m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+                        } else if (m_encodedText[0] != '\0') {
+                            std::strncpy(m_resultEncodedText, m_encodedText, sizeof(m_resultEncodedText) - 1);
+                            m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+                        }
+                        
+                        std::string decodedText = m_huffmanTree->getDecodedText();
+                        if (!decodedText.empty()) {
+                            std::strncpy(m_resultDecodedText, decodedText.c_str(), sizeof(m_resultDecodedText) - 1);
+                            m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+                        }
+                    }
+                    
+                    // Draw UI elements
                     ImGui::Text("Encoded String:");
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.1f, 0.1f, 0.1f, 0.5f));
                     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-                    ImGui::InputTextMultiline("##encoded_result", m_resultEncodedText, sizeof(m_resultEncodedText), ImVec2(-1, 80), ImGuiInputTextFlags_ReadOnly);
+                    
+                    // Add more visible indicators for debugging
+                    if (strlen(m_resultEncodedText) > 0) {
+                        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.3f, 1.0f), 
+                            "Encoded length: %zu bytes", strlen(m_resultEncodedText));
+                    } else {
+                        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), 
+                            "Warning: Encoded text is empty! Check HuffmanTree implementation.");
+                    }
+                    
+                    ImGui::InputTextMultiline("##encoded_result", m_resultEncodedText, sizeof(m_resultEncodedText), 
+                                             ImVec2(ImGui::GetContentRegionAvail().x, 80), ImGuiInputTextFlags_ReadOnly);
                     ImGui::PopItemWidth();
                     
                     ImGui::Text("Decoded Text:");
-                    ImGui::InputTextMultiline("##decoded_result", m_resultDecodedText, sizeof(m_resultDecodedText), ImVec2(-1, 80), ImGuiInputTextFlags_ReadOnly);
+                    
+                    // Add more visible indicators for debugging
+                    if (strlen(m_resultDecodedText) > 0) {
+                        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.3f, 1.0f), 
+                            "Decoded length: %zu bytes", strlen(m_resultDecodedText));
+                    } else {
+                        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), 
+                            "Warning: Decoded text is empty! Check HuffmanTree implementation.");
+                    }
+                    
+                    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::InputTextMultiline("##decoded_result", m_resultDecodedText, sizeof(m_resultDecodedText), 
+                                             ImVec2(ImGui::GetContentRegionAvail().x, 80), ImGuiInputTextFlags_ReadOnly);
+                    ImGui::PopItemWidth();
                     ImGui::PopStyleColor();
                 } else {
-                    // Encoding results
+                    // Encoding results - Force get data from tree first
+                    if (m_huffmanTree) {
+                        std::string encodedText = m_huffmanTree->getEncodedText();
+                        if (!encodedText.empty()) {
+                            std::strncpy(m_resultEncodedText, encodedText.c_str(), sizeof(m_resultEncodedText) - 1);
+                            m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+                        }
+                        
+                        std::string decodedText = m_huffmanTree->getDecodedText();
+                        if (!decodedText.empty()) {
+                            std::strncpy(m_resultDecodedText, decodedText.c_str(), sizeof(m_resultDecodedText) - 1);
+                            m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+                        } else if (m_inputText[0] != '\0') {
+                            std::strncpy(m_resultDecodedText, m_inputText, sizeof(m_resultDecodedText) - 1);
+                            m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+                        }
+                    }
+                    
+                    // Draw UI elements
                     ImGui::Text("Original Text:");
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.1f, 0.1f, 0.1f, 0.5f));
                     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-                    ImGui::InputTextMultiline("##original_text", m_resultDecodedText, sizeof(m_resultDecodedText), ImVec2(-1, 80), ImGuiInputTextFlags_ReadOnly);
+                    
+                    ImGui::Text("Original length: %zu bytes, Content: %s", strlen(m_resultDecodedText),
+                               strlen(m_resultDecodedText) > 0 ? "present" : "empty");
+                    
+                    ImGui::InputTextMultiline("##original_text", m_resultDecodedText, sizeof(m_resultDecodedText), 
+                                             ImVec2(ImGui::GetContentRegionAvail().x, 80), ImGuiInputTextFlags_ReadOnly);
                     ImGui::PopItemWidth();
                     
                     ImGui::Text("Encoded String:");
-                    ImGui::InputTextMultiline("##encoded_result", m_resultEncodedText, sizeof(m_resultEncodedText), ImVec2(-1, 80), ImGuiInputTextFlags_ReadOnly);
+                    ImGui::Text("Encoded length: %zu bytes, Content: %s", strlen(m_resultEncodedText),
+                               strlen(m_resultEncodedText) > 0 ? "present" : "empty");
+                    
+                    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::InputTextMultiline("##encoded_result", m_resultEncodedText, sizeof(m_resultEncodedText), 
+                                             ImVec2(ImGui::GetContentRegionAvail().x, 80), ImGuiInputTextFlags_ReadOnly);
+                    ImGui::PopItemWidth();
                     ImGui::PopStyleColor();
                 }
                 
@@ -879,11 +1043,17 @@ void HuffmanGUI::buildHuffmanTree() {
                     
                     // Encode the text
                     std::string encodedResult = m_huffmanTree->encode(std::string(m_inputText));
-                    strncpy(m_resultEncodedText, encodedResult.c_str(), sizeof(m_resultEncodedText) - 1);
+                    
+                    // Make sure to copy the strings completely and ensure null termination
+                    std::strncpy(m_resultEncodedText, encodedResult.c_str(), sizeof(m_resultEncodedText) - 1); 
                     m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
                     
-                    strncpy(m_resultDecodedText, m_inputText, sizeof(m_resultDecodedText) - 1);
+                    std::strncpy(m_resultDecodedText, m_inputText, sizeof(m_resultDecodedText) - 1);
                     m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+                    
+                    // Store the results in the HuffmanTree object too
+                    m_huffmanTree->setEncodedText(encodedResult);
+                    m_huffmanTree->setDecodedText(std::string(m_inputText));
                     
                     m_huffmanAnimation.decodingMode = false;
                     m_showHuffmanResults = true;
@@ -908,15 +1078,19 @@ void HuffmanGUI::buildHuffmanTree() {
                     }
                     
                     // Encode the sample text
-                    strncpy(m_inputText, sampleText.c_str(), sizeof(m_inputText) - 1);
+                    std::strncpy(m_inputText, sampleText.c_str(), sizeof(m_inputText) - 1);
                     m_inputText[sizeof(m_inputText) - 1] = '\0';
                     
                     std::string encodedResult = m_huffmanTree->encode(sampleText);
-                    strncpy(m_resultEncodedText, encodedResult.c_str(), sizeof(m_resultEncodedText) - 1);
+                    std::strncpy(m_resultEncodedText, encodedResult.c_str(), sizeof(m_resultEncodedText) - 1);
                     m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
                     
-                    strncpy(m_resultDecodedText, sampleText.c_str(), sizeof(m_resultDecodedText) - 1);
+                    std::strncpy(m_resultDecodedText, sampleText.c_str(), sizeof(m_resultDecodedText) - 1);
                     m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+                    
+                    // Store results in HuffmanTree object
+                    m_huffmanTree->setEncodedText(encodedResult);
+                    m_huffmanTree->setDecodedText(sampleText);
                     
                     m_huffmanAnimation.decodingMode = false;
                     m_showHuffmanResults = true;
@@ -943,12 +1117,18 @@ void HuffmanGUI::buildHuffmanTree() {
                     m_huffmanTree = std::make_unique<HuffmanTree>(m_charFrequencies);
                     
                     // Decode the encoded string
-                    std::string decodedResult = m_huffmanTree->decode(std::string(m_encodedText));
-                    strncpy(m_resultDecodedText, decodedResult.c_str(), sizeof(m_resultDecodedText) - 1);
+                    std::string encodedStr(m_encodedText);
+                    std::string decodedResult = m_huffmanTree->decode(encodedStr);
+                    
+                    std::strncpy(m_resultDecodedText, decodedResult.c_str(), sizeof(m_resultDecodedText) - 1);
                     m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
                     
-                    strncpy(m_resultEncodedText, m_encodedText, sizeof(m_resultEncodedText) - 1);
+                    std::strncpy(m_resultEncodedText, m_encodedText, sizeof(m_resultEncodedText) - 1);
                     m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+                    
+                    // Store results in HuffmanTree object
+                    m_huffmanTree->setEncodedText(encodedStr);
+                    m_huffmanTree->setDecodedText(decodedResult);
                     
                     m_huffmanAnimation.decodingMode = true;
                     m_showHuffmanResults = true;
@@ -1054,6 +1234,23 @@ void HuffmanGUI::animateEncoding() {
     // Check if encoding is complete
     if (m_huffmanAnimation.encodingStep >= static_cast<int>(inputLen)) {
         m_huffmanAnimation.encodingComplete = true;
+        
+        // When animation completes, make sure the result buffers are updated
+        if (m_resultEncodedText[0] == '\0' && !m_huffmanAnimation.currentEncoded.empty()) {
+            std::strncpy(m_resultEncodedText, m_huffmanAnimation.currentEncoded.c_str(), sizeof(m_resultEncodedText) - 1);
+            m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+        }
+        
+        if (m_resultDecodedText[0] == '\0' && !m_huffmanAnimation.currentText.empty()) {
+            std::strncpy(m_resultDecodedText, m_huffmanAnimation.currentText.c_str(), sizeof(m_resultDecodedText) - 1);
+            m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+        }
+        
+        // Also update the Huffman tree object
+        if (m_huffmanTree) {
+            m_huffmanTree->setEncodedText(m_huffmanAnimation.currentEncoded);
+            m_huffmanTree->setDecodedText(m_huffmanAnimation.currentText);
+        }
     }
 }
 
@@ -1076,6 +1273,24 @@ void HuffmanGUI::animateDecoding() {
         // Handle the case where we might have already processed all input bits
         if (i >= static_cast<int>(encodedLen)) {
             m_huffmanAnimation.encodingComplete = true;
+            
+            // Update result buffers when animation completes
+            if (m_resultEncodedText[0] == '\0' && !m_huffmanAnimation.currentEncoded.empty()) {
+                std::strncpy(m_resultEncodedText, m_huffmanAnimation.currentEncoded.c_str(), sizeof(m_resultEncodedText) - 1);
+                m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+            }
+            
+            if (m_resultDecodedText[0] == '\0' && !m_huffmanAnimation.currentText.empty()) {
+                std::strncpy(m_resultDecodedText, m_huffmanAnimation.currentText.c_str(), sizeof(m_resultDecodedText) - 1);
+                m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+            }
+            
+            // Also update the Huffman tree object
+            if (m_huffmanTree) {
+                m_huffmanTree->setEncodedText(m_huffmanAnimation.currentEncoded);
+                m_huffmanTree->setDecodedText(m_huffmanAnimation.currentText);
+            }
+            
             return;
         }
         
@@ -1122,6 +1337,23 @@ void HuffmanGUI::animateDecoding() {
         // Check if decoding is complete
         if (m_huffmanAnimation.currentEncoded.length() >= encodedLen) {
             m_huffmanAnimation.encodingComplete = true;
+            
+            // Update result buffers when animation completes
+            if (m_resultEncodedText[0] == '\0' && !m_huffmanAnimation.currentEncoded.empty()) {
+                std::strncpy(m_resultEncodedText, m_huffmanAnimation.currentEncoded.c_str(), sizeof(m_resultEncodedText) - 1);
+                m_resultEncodedText[sizeof(m_resultEncodedText) - 1] = '\0';
+            }
+            
+            if (m_resultDecodedText[0] == '\0' && !m_huffmanAnimation.currentText.empty()) {
+                std::strncpy(m_resultDecodedText, m_huffmanAnimation.currentText.c_str(), sizeof(m_resultDecodedText) - 1);
+                m_resultDecodedText[sizeof(m_resultDecodedText) - 1] = '\0';
+            }
+            
+            // Also update the Huffman tree object
+            if (m_huffmanTree) {
+                m_huffmanTree->setEncodedText(m_huffmanAnimation.currentEncoded);
+                m_huffmanTree->setDecodedText(m_huffmanAnimation.currentText);
+            }
         }
     }
 }
@@ -1157,12 +1389,15 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
     // Calculate node colors and sizes with less saturation
     ImU32 nodeColor;
     ImU32 nodeBorderColor = IM_COL32(70, 70, 70, 220); // Darker, less saturated border
-    float nodeSize = 38.0f;
+    
+    // Use smaller node size like in the black and white reference image
+    float baseNodeSize = 32.0f;
+    float nodeSize = baseNodeSize * (yOffset / 150.0f); // Scale node size consistently with zoom
     
     if (isHighlighted) {
         // Softer highlight for the active node
         nodeColor = IM_COL32(230, 190, 60, 230);
-        nodeSize = 42.0f; // Slightly larger for emphasis
+        nodeSize = nodeSize * 1.1f; // Slightly larger for emphasis, while maintaining zoom scaling
     } else if (isInPath) {
         // Previously traversed node - more muted
         nodeColor = IM_COL32(110, 180, 120, 230);
@@ -1183,27 +1418,31 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
         if (node->getCharacter() == 'w') {
             nodeColor = IM_COL32(220, 190, 60, 230);
         }
+        // Character 'm' in yellow like the original image
+        else if (node->getCharacter() == 'm') {
+            nodeColor = IM_COL32(220, 190, 60, 230);
+        }
     } else {
         // Internal nodes - softer green
         nodeColor = IM_COL32(100, 170, 130, 230);
     }
     
-    // Draw the node with a stronger border for better clarity
-    drawList->AddCircleFilled(nodePos, nodeSize + 2.5f, nodeBorderColor, 24);
-    drawList->AddCircleFilled(nodePos, nodeSize, nodeColor, 24);
+    // Draw the node with a thinner border like in the reference image
+    drawList->AddCircleFilled(nodePos, nodeSize + 1.5f, nodeBorderColor, 20);
+    drawList->AddCircleFilled(nodePos, nodeSize, nodeColor, 20);
     
     // Draw node content
     char label[64];
     
     if (node->isLeaf()) {
-        // Format with character and frequency
+        // Format with character and frequency - simpler format like in reference image
         char displayChar = node->getCharacter();
         // Handle special characters for display
-        if (displayChar == '\n') snprintf(label, sizeof(label), "'\\n':%d", node->getFrequency());
-        else if (displayChar == '\r') snprintf(label, sizeof(label), "'\\r':%d", node->getFrequency());
-        else if (displayChar == '\t') snprintf(label, sizeof(label), "'\\t':%d", node->getFrequency());
-        else if (displayChar == ' ') snprintf(label, sizeof(label), "' ':%d", node->getFrequency());
-        else snprintf(label, sizeof(label), "'%c':%d", displayChar, node->getFrequency());
+        if (displayChar == '\n') snprintf(label, sizeof(label), "'\\n'\n%d", node->getFrequency());
+        else if (displayChar == '\r') snprintf(label, sizeof(label), "'\\r'\n%d", node->getFrequency());
+        else if (displayChar == '\t') snprintf(label, sizeof(label), "'\\t'\n%d", node->getFrequency());
+        else if (displayChar == ' ') snprintf(label, sizeof(label), "' '\n%d", node->getFrequency());
+        else snprintf(label, sizeof(label), "'%c'\n%d", displayChar, node->getFrequency());
     } else {
         // Internal node - just show frequency
         snprintf(label, sizeof(label), "%d", node->getFrequency());
@@ -1221,87 +1460,99 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
     // Draw node text with clearer color
     drawList->AddText(textPos, IM_COL32(0, 0, 0, 230), label);
     
-    // Count the number of nodes in each subtree for better balancing
-    int leftCount = 0, rightCount = 0;
-    countSubtreeNodes(node->getLeft(), leftCount);
-    countSubtreeNodes(node->getRight(), rightCount);
-    
-    // Recursively draw child nodes with improved spacing
+    // Recursively draw child nodes
     if (node->getLeft() || node->getRight()) {
-        // Calculate depth-based spacing adjustments
-        float depthFactor = std::min(1.0f, 2.0f / (code.length() + 1));
+        // Count leaf nodes in each subtree to allocate space proportionally
+        int leftLeafCount = 0, rightLeafCount = 0;
         
-        // Increase vertical spacing for deeper levels to prevent overlap
-        float levelYOffset = yOffset * (1.0f + 0.15f * code.length());
-        float childY = y + levelYOffset;
-        
-        // Calculate better horizontal separation based on tree depth and subtree size
-        float horizontalScaleFactor = 1.8f - (0.15f * code.length());
-        horizontalScaleFactor = std::max(0.6f, horizontalScaleFactor);
-        
-        // Adjust horizontal spacing based on the number of nodes in subtrees
-        float leftRatio = (leftCount > 0) ? leftCount : 0.5f;
-        float rightRatio = (rightCount > 0) ? rightCount : 0.5f;
-        float totalRatio = leftRatio + rightRatio;
-        
-        // Calculate appropriate offsets for left and right children
-        float spacingFactor = std::max(35.0f, xOffset * horizontalScaleFactor * 
-                                     depthFactor * (1.0f + std::log(totalRatio) * 0.25f));
-        
-        // Adjust spacing to provide more room for the left subtree
-        float leftScalingFactor = 1.0f;
-        if (leftCount > rightCount) {
-            // Apply a stronger scaling factor based on the ratio difference
-            float ratio = static_cast<float>(leftCount) / std::max(1, rightCount);
-            leftScalingFactor = 1.2f + std::min(0.8f, (ratio - 1) * 0.2f); // Up to 2.0x for very unbalanced trees
-        }
-        
-        float leftX = x - spacingFactor * (leftRatio / totalRatio) * leftScalingFactor;
-        float rightX = x + spacingFactor * (rightRatio / totalRatio);
-        
-        // Ensure minimum separation between adjacent nodes
-        float minNodeSeparation = nodeSize * 4.0f; // Increased minimum separation
-        if (rightX - leftX < minNodeSeparation) {
-            float adjustNeeded = (minNodeSeparation - (rightX - leftX)) / 2.0f;
-            leftX -= adjustNeeded;
-            rightX += adjustNeeded;
-        }
-        
-        // Draw edges to children with improved visibility - connect from bottom of parent to top of child
+        // Calculate leaf counts in each subtree
         if (node->getLeft()) {
-            ImVec2 leftChildPos(leftX, childY);
+            countLeafNodes(node->getLeft(), leftLeafCount);
+        }
+        if (node->getRight()) {
+            countLeafNodes(node->getRight(), rightLeafCount);
+        }
+        
+        // Ensure minimum values for proper spacing
+        leftLeafCount = std::max(1, leftLeafCount);
+        rightLeafCount = std::max(1, rightLeafCount);
+        
+        // Increase vertical spacing between levels for clarity
+        float baseVerticalDistance = 180.0f;
+        
+        // Apply zoom factor - this scales the entire tree uniformly
+        float zoomFactor = yOffset / 150.0f;
+        
+        // Use a more horizontal layout like the reference image
+        // Reduced base angle for wider horizontal spread
+        float baseAngle = 40.0f;
+        
+        // Calculate spread based on tree level to prevent overlaps
+        int level = code.length();
+        int totalLeaves = leftLeafCount + rightLeafCount;
+        
+        // Fixed angle based on level to ensure consistent horizontal spread
+        // Use exponential decrease to make top levels wider and lower levels narrower
+        float levelFactor = std::exp(-level * 0.2f);
+        
+        // Final angle with minimum to prevent vertical lines
+        float finalAngle = std::max(15.0f, baseAngle * levelFactor);
+        
+        // Calculate fixed edge length to ensure all edges are identical
+        // Gradually increase edge length at higher levels for better spacing
+        float levelMultiplier = 1.0f + (level > 0 ? 0.0f : 0.2f); // Root level has longer edges
+        float edgeLength = baseVerticalDistance * levelMultiplier;
+        
+        // Calculate the x and y components based on the angle and edge length
+        float xComponent = edgeLength * std::sin(finalAngle * 3.14159f / 180.0f);
+        float yComponent = edgeLength * std::cos(finalAngle * 3.14159f / 180.0f);
+        
+        // Apply zoom scaling
+        xComponent *= zoomFactor;
+        yComponent *= zoomFactor;
+        
+        // Position left and right children using calculated components to ensure identical edge lengths
+        float leftX = x - xComponent;
+        float rightX = x + xComponent;
+        float childY = y + yComponent;
+        
+        // Ensure horizontal spacing by spreading nodes at each level
+        // Scale factor increases with level to ensure sufficient room for leaf nodes
+        float spreadFactor = 1.0f + std::min(3.0f, level * 0.5f);
+        
+        // Apply spread adjustment based on the number of leaf nodes
+        if (leftLeafCount > 1 || rightLeafCount > 1) {
+            float leftSpread = std::log(leftLeafCount + 1) * spreadFactor;
+            float rightSpread = std::log(rightLeafCount + 1) * spreadFactor;
             
-            // Calculate the bottom center point of the parent node
-            ImVec2 parentBottomCenter(
-                nodePos.x,
-                nodePos.y + nodeSize + 2.5f
-            );
+            // Apply spread adjustments
+            leftX -= nodeSize * leftSpread * zoomFactor;
+            rightX += nodeSize * rightSpread * zoomFactor;
+        }
+        
+        // Draw connecting lines and edge labels
+        if (node->getLeft()) {
+            // Draw edge to left child
+            ImVec2 parentBottomCenter(nodePos.x, nodePos.y + nodeSize + 2.5f);
+            ImVec2 childTopCenter(leftX, childY - nodeSize - 2.5f);
             
-            // Calculate the top center point of the child node
-            ImVec2 childTopCenter(
-                leftChildPos.x,
-                leftChildPos.y - nodeSize - 2.5f
-            );
-            
-            // Edge color: softer grey for less visual intensity
+            // Edge color
             ImU32 edgeColor = IM_COL32(130, 130, 130, 180);
-            float edgeThickness = 2.2f;
+            float edgeThickness = 2.2f * (yOffset / 150.0f); // Scale with zoom
             
             // Draw edge from bottom of parent to top of child
             drawList->AddLine(parentBottomCenter, childTopCenter, edgeColor, edgeThickness);
             
-            // Calculate midpoint for edge label - closer to child
+            // Calculate midpoint for edge label
             ImVec2 midPoint(
                 parentBottomCenter.x * 0.4f + childTopCenter.x * 0.6f,
                 parentBottomCenter.y * 0.4f + childTopCenter.y * 0.6f
             );
             
-            // Draw label circle with improved visibility but softer colors
-            float labelSize = 14.0f;
-            // Add a soft dark outline for the label
-            drawList->AddCircleFilled(midPoint, labelSize + 1.0f, IM_COL32(40, 40, 40, 150), 16);
-            // Draw the white background - slightly off-white for less harshness
-            drawList->AddCircleFilled(midPoint, labelSize, IM_COL32(240, 240, 240, 230), 16);
+            // Draw smaller label circle like in the reference image
+            float labelSize = 10.0f * (yOffset / 150.0f); // Scale with zoom
+            drawList->AddCircleFilled(midPoint, labelSize + 1.0f, IM_COL32(40, 40, 40, 150), 12);
+            drawList->AddCircleFilled(midPoint, labelSize, IM_COL32(240, 240, 240, 230), 12);
             
             // Draw the '0' label
             ImVec2 textSize = ImGui::CalcTextSize("0");
@@ -1310,7 +1561,6 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
                 midPoint.y - textSize.y * 0.5f
             );
             
-            // Draw text with a softer black
             drawList->AddText(labelPos, IM_COL32(30, 30, 30, 220), "0");
             
             // Recursively draw left subtree
@@ -1318,39 +1568,27 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
         }
         
         if (node->getRight()) {
-            ImVec2 rightChildPos(rightX, childY);
+            // Draw edge to right child
+            ImVec2 parentBottomCenter(nodePos.x, nodePos.y + nodeSize + 2.5f);
+            ImVec2 childTopCenter(rightX, childY - nodeSize - 2.5f);
             
-            // Calculate the bottom center point of the parent node
-            ImVec2 parentBottomCenter(
-                nodePos.x,
-                nodePos.y + nodeSize + 2.5f
-            );
-            
-            // Calculate the top center point of the child node
-            ImVec2 childTopCenter(
-                rightChildPos.x,
-                rightChildPos.y - nodeSize - 2.5f
-            );
-            
-            // Softer grey edges
+            // Edge color
             ImU32 edgeColor = IM_COL32(130, 130, 130, 180);
-            float edgeThickness = 2.2f;
+            float edgeThickness = 2.2f * (yOffset / 150.0f); // Scale with zoom
             
             // Draw edge from bottom of parent to top of child
             drawList->AddLine(parentBottomCenter, childTopCenter, edgeColor, edgeThickness);
             
-            // Calculate midpoint for edge label - closer to child
+            // Calculate midpoint for edge label
             ImVec2 midPoint(
                 parentBottomCenter.x * 0.4f + childTopCenter.x * 0.6f,
                 parentBottomCenter.y * 0.4f + childTopCenter.y * 0.6f
             );
             
-            // Draw label circle with improved visibility but softer colors
-            float labelSize = 14.0f;
-            // Add a soft dark outline for the label
-            drawList->AddCircleFilled(midPoint, labelSize + 1.0f, IM_COL32(40, 40, 40, 150), 16);
-            // Draw the white background - slightly off-white for less harshness
-            drawList->AddCircleFilled(midPoint, labelSize, IM_COL32(240, 240, 240, 230), 16);
+            // Draw smaller label circle like in the reference image
+            float labelSize = 10.0f * (yOffset / 150.0f); // Scale with zoom
+            drawList->AddCircleFilled(midPoint, labelSize + 1.0f, IM_COL32(40, 40, 40, 150), 12);
+            drawList->AddCircleFilled(midPoint, labelSize, IM_COL32(240, 240, 240, 230), 12);
             
             // Draw the '1' label
             ImVec2 textSize = ImGui::CalcTextSize("1");
@@ -1359,11 +1597,22 @@ void HuffmanGUI::renderHuffmanTree(const std::shared_ptr<Node>& node, float x, f
                 midPoint.y - textSize.y * 0.5f
             );
             
-            // Draw text with a softer black
             drawList->AddText(labelPos, IM_COL32(30, 30, 30, 220), "1");
             
             // Recursively draw right subtree
             renderHuffmanTree(node->getRight(), rightX, childY, xOffset, yOffset, code + "1", animateTraversal);
         }
+    }
+}
+
+// New helper method to count leaf nodes in a subtree
+void HuffmanGUI::countLeafNodes(const std::shared_ptr<Node>& node, int& count) {
+    if (!node) return;
+    
+    if (node->isLeaf()) {
+        count++;
+    } else {
+        countLeafNodes(node->getLeft(), count);
+        countLeafNodes(node->getRight(), count);
     }
 } 

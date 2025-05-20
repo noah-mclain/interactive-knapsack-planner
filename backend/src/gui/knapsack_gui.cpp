@@ -1,4 +1,4 @@
-#include "gui/knapsack_gui.hpp"
+#include "../../include/gui/knapsack_gui.hpp"
 #include <iostream>
 #include <sstream>
 #include <iomanip>

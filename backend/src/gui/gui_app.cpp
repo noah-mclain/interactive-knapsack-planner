@@ -1,5 +1,5 @@
-#include "../include/gui/gui_app.hpp"
-#include "gui/imgui_sfml_bridge.hpp"
+#include "../../include/gui/gui_app.hpp"
+#include "../../include/gui/imgui_sfml_bridge.hpp"
 #include <iostream>
 #include <sstream>
 #include <iomanip>

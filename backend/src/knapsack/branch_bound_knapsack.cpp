@@ -1,4 +1,4 @@
-#include "../include/knapsack/branchbound.hpp"
+#include "../../include/knapsack/branchbound.hpp"
 #include <algorithm>
 #include <iostream>
 #include <stack>

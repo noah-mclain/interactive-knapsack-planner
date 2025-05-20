@@ -1,5 +1,5 @@
-#include "../include/gui/imgui_sfml_bridge.hpp"
-#include "backends/imgui_impl_opengl3.h"
+#include "../../include/gui/imgui_sfml_bridge.hpp"
+#include "../../external/imgui/backends/imgui_impl_opengl3.h"
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>

@@ -43,6 +43,7 @@ private:
                           const std::string& code, bool animateTraversal);
     void countSubtreeNodes(const std::shared_ptr<Node>& node, int& count);
     void countTotalNodes(const std::shared_ptr<Node>& node, int depth, int& count, int& maxDepth);
+    void countLeafNodes(const std::shared_ptr<Node>& node, int& count);
     void updateHuffmanAnimation(float deltaTime);
     void animateEncoding();
     void animateDecoding();

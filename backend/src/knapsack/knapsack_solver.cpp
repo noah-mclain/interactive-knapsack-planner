@@ -1,5 +1,5 @@
-#include "../include/knapsack/knapsack_solver.hpp"
-#include "../include/knapsack/branchbound.hpp"
+#include "../../include/knapsack/knapsack_solver.hpp"
+#include "../../include/knapsack/branchbound.hpp"
 #include <iostream>
 #include <chrono>
 #include <sstream>

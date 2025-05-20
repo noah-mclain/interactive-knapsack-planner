@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.12)
 
 # Add knapsack library
 file(GLOB KNAPSACK_SOURCES 
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/brute_force_knapsack.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/dp_knapsack.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/greedy_knapsack.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/huffmantree.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack_solver.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/node.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_sfml_bridge.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/branch_bound_knapsack.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/huffman_gui.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack_gui.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack/brute_force_knapsack.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack/dp_knapsack.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack/greedy_knapsack.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/huffman/huffmantree.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack/knapsack_solver.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/huffman/node.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/imgui_sfml_bridge.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/knapsack/branch_bound_knapsack.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/huffman_gui.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/knapsack_gui.cpp"
 )
 
 add_library(knapsack ${KNAPSACK_SOURCES})
@@ -40,7 +40,7 @@ target_include_directories(knapsack PUBLIC
 # Create main executable
 add_executable(knapsack_main
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui_app.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/gui_app.cpp
 )
 
 # Print the GLSL version being used

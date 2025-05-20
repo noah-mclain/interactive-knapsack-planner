@@ -1,4 +1,4 @@
-#include "../include/huffman/node.hpp"
+#include "../../include/huffman/node.hpp"
 
 using namespace std;
 

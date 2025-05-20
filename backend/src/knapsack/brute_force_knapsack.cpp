@@ -1,4 +1,4 @@
-#include "../include/knapsack/brute_force_knapsack.hpp"
+#include "../../include/knapsack/brute_force_knapsack.hpp"
 #include <algorithm>
 #include <numeric>
 #include <cmath>
